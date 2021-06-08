@@ -4,41 +4,41 @@
 #include "queue.c"
 #include "dict.c"
 
-void pq_display_front()
+void pq_display_front(pq_instance_ptr pq)
 {
 
-    if (is_pq_empty())
+    if (is_pq_empty(pq))
     {
 
         printf("\nThe queue is empty!\n");
         return;
     }
 
-    printf("\n[%d]\n", front->data);
+    printf("\n[%d]\n", pq->front->data);
 }
 
-void pq_display_rear()
+void pq_display_rear(pq_instance_ptr pq)
 {
 
-    if (is_pq_empty())
+    if (is_pq_empty(pq))
     {
 
         printf("\nThe queue is empty!\n");
         return;
     }
 
-    printf("\n[%d]\n", rear->data);
+    printf("\n[%d]\n", pq->rear->data);
 }
 
-void pq_display()
+void pq_display(pq_instance_ptr pq)
 {
-    if (is_pq_empty())
+    if (is_pq_empty(pq))
     {
         printf("\nThe queue is empty!\n");
         return;
     }
 
-    pq_node_ptr temp = front;
+    pq_node_ptr temp = pq->front;
 
     printf("\n[front -> ");
 
@@ -54,7 +54,7 @@ void pq_display()
 #define MAX_W_LEN 40
 #define MAX_S_LEN 4096
 
-bool parse(const char *pt)
+pq_instance_ptr parse(const char *pt)
 {
     int i = 0;
     int len = strlen(pt);
@@ -65,7 +65,8 @@ bool parse(const char *pt)
     char in_string = 0;
     char str[MAX_S_LEN] = "";
     int str_i = 0;
-    while (we_are_good && i < len)
+    pq_instance_ptr pq = pq_init();
+    while (we_are_good && pq && i < len)
     {
         // start parsing a quoted string
         if (!in_string && (pt[i] == '\'' || pt[i] == '"' || pt[i] == '`'))
@@ -89,7 +90,7 @@ bool parse(const char *pt)
             if (!in_string)
             {
                 str[str_i] = 0; // null terminate the string
-                pq_enqueue('s', xstrdup(str));
+                pq_enqueue(pq, 's', xstrdup(str));
                 printf("add quoted string to program queue (pp) %s\n", str);
                 str[0] = 0;
                 str_i = 0;
@@ -100,7 +101,7 @@ bool parse(const char *pt)
             if (word_i > 0)
             {
                 word[word_i] = 0;
-                pq_enqueue('s', xstrdup(word));
+                pq_enqueue(pq, 's', xstrdup(word));
                 printf("add word to program queue (pp) %s\n", word);
                 word[0] = 0;
                 word_i = 0;
@@ -117,7 +118,7 @@ bool parse(const char *pt)
             word[word_i++] = pt[i++];
         }
     }
-    return we_are_good;
+    return pq;
 };
 
 int main()
@@ -127,10 +128,12 @@ int main()
     char key[10];
     char str_value[80];
     dictionary *d = dictionary_new(10);
-    if (parse(input_program)) // feeds the cq
+    pq_instance_ptr pq = NULL;
+    pq = parse(input_program);
+    if (pq) 
     {
         printf("parsed\n");
-        pq_display();
+        pq_display(pq);
     }
     else
     {

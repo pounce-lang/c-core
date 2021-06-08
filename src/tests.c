@@ -8,62 +8,63 @@ void main()
 {
     const char *temp_value;
     bool all_passing = true;
-    pq_enqueue('s', "test0");
-    pq_enqueue('s', "test");
-    temp_value = pq_dequeue();
+    pq_instance_ptr pq = pq_init();
+    pq_enqueue(pq, 's', "test0");
+    pq_enqueue(pq, 's', "test");
+    temp_value = pq_dequeue(pq);
     if (strcmp(temp_value, "test0"))
     {
         all_passing = false;
         printf("Assertion #1 found [%d] an unexpected value was pq_dequeued\n", temp_value);
     }
-    temp_value = pq_dequeue();
-    if (!is_pq_empty())
+    temp_value = pq_dequeue(pq);
+    if (!is_pq_empty(pq))
     {
         all_passing = false;
         printf("Assertion #2 found an unexpected non-empty queue\n");
     }
-    pq_enqueue('s', "test");
-    pq_enqueue('s', "test");
-    pq_enqueue('s', "test");
-    pq_enqueue('s', "test");
-    pq_clear();
-    if (!is_pq_empty())
+    pq_enqueue(pq, 's', "test");
+    pq_enqueue(pq, 's', "test");
+    pq_enqueue(pq, 's', "test");
+    pq_enqueue(pq, 's', "test");
+    pq_clear(pq);
+    if (!is_pq_empty(pq))
     {
         all_passing = false;
         printf("Assertion #3 found an unexpected non-empty queue\n");
     }
-    pq_enqueue('s', "test-a");
-    pq_enqueue('s', "test-b");
-    pq_enqueue('s', "test-c");
-    temp_value = pq_dequeue();
+    pq_enqueue(pq, 's', "test-a");
+    pq_enqueue(pq, 's', "test-b");
+    pq_enqueue(pq, 's', "test-c");
+    temp_value = pq_dequeue(pq);
     if (strcmp(temp_value, "test-a"))
     {
         all_passing = false;
         printf("Assertion #4.1 found [%d] an unexpected value was pq_dequeued\n", temp_value);
     }
-    temp_value = pq_dequeue();
+    temp_value = pq_dequeue(pq);
     if (strcmp(temp_value, "test-b"))
     {
         all_passing = false;
         printf("Assertion #4.2 found [%d] an unexpected value was pq_dequeued\n", temp_value);
     }
     // test requeue
-    pq_requeue('s', "test-z");
-    temp_value = pq_dequeue();
+    pq_requeue(pq, 's', "test-z");
+    temp_value = pq_dequeue(pq);
     if (strcmp(temp_value, "test-z"))
     {
         all_passing = false;
         printf("Assertion #5 found [%d] an unexpected value was pq_dequeued\n", temp_value);
     }
-    pq_requeue('s', "test 5");
-    pq_requeue('s', "test 4");
-    temp_value = pq_dequeue();
+    pq_requeue(pq, 's', "test 5");
+    pq_requeue(pq, 's', "test 4");
+    temp_value = pq_dequeue(pq);
     if (strcmp(temp_value, "test 4"))
     {
         all_passing = false;
         printf("Assertion #6 found [%d] an unexpected value was pq_dequeued\n", temp_value);
     }
-    temp_value = pq_dequeue();
+    temp_value = pq_dequeue(pq);
     if (strcmp(temp_value, "test 5"))
     {
         all_passing = false;
@@ -73,11 +74,11 @@ void main()
     {
         for (int i = 0; i < 5000; i++)
         {
-            pq_requeue('s', "test-z");
+            pq_requeue(pq, 's', "test-z");
         }
         for (int i = 0; i < 5000; i++)
         {
-            temp_value = pq_dequeue();
+            temp_value = pq_dequeue(pq);
         }
     }
 

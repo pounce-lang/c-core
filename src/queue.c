@@ -17,9 +17,11 @@ typedef struct pq_node
 
 } * pq_node_ptr;
 
-pq_node_ptr top = NULL;
-pq_node_ptr front = NULL;
-pq_node_ptr rear = NULL;
+typedef struct pq_instance
+{
+	pq_node_ptr front; // = NULL;
+	pq_node_ptr rear; // = NULL;
+} * pq_instance_ptr;
 
 static char *xstrcp(const char *s)
 {
@@ -37,13 +39,28 @@ static char *xstrcp(const char *s)
 	return t;
 }
 
-bool is_pq_empty()
-{
+pq_instance_ptr pq_init() {
+	pq_instance_ptr new_pq = (pq_instance_ptr)malloc(sizeof(struct pq_instance));
 
-	return (front == NULL || rear == NULL);
+	if (new_pq == NULL)
+	{
+		return NULL;
+	}
+	new_pq->front = NULL;
+	new_pq->rear = NULL;
+	return new_pq;
+};
+
+bool pq_delete(pq_instance_ptr old_pq) {
+	return false;
+};
+
+bool is_pq_empty(pq_instance_ptr pq)
+{
+	return (pq->front == NULL || pq->rear == NULL);
 }
 
-bool pq_requeue(char t, const char *value)
+bool pq_requeue(pq_instance_ptr pq, char t, const char *value)
 {
 
 	pq_node_ptr item = (pq_node_ptr)malloc(sizeof(struct pq_node));
@@ -58,21 +75,21 @@ bool pq_requeue(char t, const char *value)
 		item->data.s = xstrcp(value);
 	}
 
-	if (front == NULL)
+	if (pq->front == NULL)
 	{
-		front = rear = item;
+		pq->front = pq->rear = item;
 		item->previous = NULL;
 	}
 	else
 	{
-		item->previous = front;
-		front = item;
+		item->previous = pq->front;
+		pq->front = item;
 	}
 
 	return true;
 }
 
-bool pq_enqueue(char t, const char *value)
+bool pq_enqueue(pq_instance_ptr pq, char t, const char *value)
 {
 
 	pq_node_ptr item = (pq_node_ptr)malloc(sizeof(struct pq_node));
@@ -86,32 +103,32 @@ bool pq_enqueue(char t, const char *value)
 	}
 	item->previous = NULL;
 
-	if (rear == NULL)
-		front = rear = item;
+	if (pq->rear == NULL)
+		pq->front = pq->rear = item;
 	else
 	{
-		rear->previous = item;
-		rear = item;
+		pq->rear->previous = item;
+		pq->rear = item;
 	}
 
 	return true;
 }
 
-const char *pq_dequeue()
+const char *pq_dequeue(pq_instance_ptr pq)
 {
 
-	if (is_pq_empty())
+	if (is_pq_empty(pq))
 	{
 
 		return "";
 	}
-	pq_node_ptr temp = front;
-	const char *ret_val = front->data.s;
+	pq_node_ptr temp = pq->front;
+	const char *ret_val = pq->front->data.s;
 	if (temp->previous == NULL)
 	{
-		rear = NULL;
+		pq->rear = NULL;
 	}
-	front = front->previous;
+	pq->front = pq->front->previous;
 	if (temp->type == 's')
 	{
 		free(temp->data.s);
@@ -121,16 +138,16 @@ const char *pq_dequeue()
 	return ret_val;
 }
 
-bool pq_clear()
+bool pq_clear(pq_instance_ptr pq)
 {
 
-	if (is_pq_empty())
+	if (is_pq_empty(pq))
 	{
 
 		return false;
 	}
 
-	pq_node_ptr current = front;
+	pq_node_ptr current = pq->front;
 	pq_node_ptr previous = NULL;
 
 	while (current != NULL)
@@ -141,8 +158,8 @@ bool pq_clear()
 		current = previous;
 	}
 
-	front = NULL;
-	rear = NULL;
+	pq->front = NULL;
+	pq->rear = NULL;
 
-	return is_pq_empty();
+	return is_pq_empty(pq);
 }
