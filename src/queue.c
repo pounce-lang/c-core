@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-typedef struct word
+typedef struct word_struct
 {
 	union
 	{
@@ -46,13 +46,14 @@ static char *xstrcp(const char *s)
 
 word_ptr word_init()
 {
-	word_ptr new_word = (word_ptr)malloc(sizeof(struct word));
+	word_ptr new_word = (word_ptr)malloc(sizeof(struct word_struct));
 
 	if (new_word == NULL)
 	{
-		printf("could not malloc word union\n");
+		printf("could not malloc word_struct union\n");
 		return NULL;
 	}
+	// printf("returning new word %d\n", &new_word);
 	return new_word;
 };
 
@@ -67,7 +68,7 @@ pq_instance_ptr pq_init()
 	}
 	new_pq->front = NULL;
 	new_pq->rear = NULL;
-	printf("returning pq 0 %d\n", &new_pq);
+	// printf("returning new pq 0 %d\n", &new_pq);
 	return new_pq;
 };
 
@@ -91,9 +92,10 @@ bool pq_requeue(pq_instance_ptr pq, char t, word_ptr value)
 		return false;
 	}
 
+	item->type = t;
 	if (t == 's')
 	{
-		item->data->w.s = xstrcp(value->w.s);
+		item->data = value;
 	}
 
 	if (pq->front == NULL)
@@ -118,10 +120,12 @@ bool pq_enqueue(pq_instance_ptr pq, char t, word_ptr value)
 	if (item == NULL)
 		return false;
 
+	item->type = t;
 	if (t == 's')
 	{
-		item->data->w.s = xstrcp(value->w.s);
+		item->data = value;
 	}
+
 	item->previous = NULL;
 
 	if (pq->rear == NULL)

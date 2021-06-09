@@ -4,6 +4,14 @@
 #include "queue.c"
 #include "dict.c"
 
+void pq_display_word(pq_node_ptr node){
+    if (node->type == 's') {
+        printf(" %s ", node->data->w.s);
+    }
+    else {
+        printf(" ??? %c ", node->type);
+    }
+}
 void pq_display_front(pq_instance_ptr pq)
 {
 
@@ -14,7 +22,7 @@ void pq_display_front(pq_instance_ptr pq)
         return;
     }
 
-    printf("\n[%d]\n", pq->front->data);
+    pq_display_word(pq->front);
 }
 
 void pq_display_rear(pq_instance_ptr pq)
@@ -27,8 +35,8 @@ void pq_display_rear(pq_instance_ptr pq)
         return;
     }
 
-    printf("\n[%d]\n", pq->rear->data);
-}
+    pq_display_word(pq->rear);
+};
 
 void pq_display(pq_instance_ptr pq)
 {
@@ -44,7 +52,8 @@ void pq_display(pq_instance_ptr pq)
 
     while (temp != NULL)
     {
-        printf("[%s]", temp->data);
+//        printf("[%s]", temp->data);
+        pq_display_word(temp);
         temp = temp->previous;
     }
 
@@ -55,7 +64,7 @@ void pq_display(pq_instance_ptr pq)
 #define MAX_S_LEN 4096
 typedef struct parser_result
 {
-    pq_instance_ptr pq; 
+    pq_instance_ptr pq;
     int i;
 } * parser_result_ptr;
 
@@ -90,12 +99,14 @@ parser_result_ptr parse(int i, const char *pt)
         // start parsing a quoted string
         if (!in_string && (pt[i] == '\'' || pt[i] == '"' || pt[i] == '`'))
         {
+            // printf("parser- start parsing a quoted string\n");
             in_string = pt[i];
             str_i = 0;
             str[str_i++] = pt[i++];
         }
         else if (in_string)
         {
+            // printf("parser- in a string\n");
             if (str_i >= MAX_S_LEN - 1)
             {
                 printf("word too long\n");
@@ -114,20 +125,20 @@ parser_result_ptr parse(int i, const char *pt)
 
                 w->w.s = xstrdup(str);
                 pq_enqueue(result->pq, 's', w);
-                printf("add quoted string to program queue (pp) %s\n", str);
                 str[0] = 0;
                 str_i = 0;
             }
         }
         else if (pt[i] == '[')
         {
+            // printf("parser- start a list '['\n");
             if (word_i > 0)
             {
                 word[word_i] = 0;
                 word_ptr w = word_init();
                 w->w.s = xstrdup(word);
                 pq_enqueue(result->pq, 's', w);
-                printf("add word to program queue (pp) %s\n", word);
+                // printf("add word to program queue (pp) %s\n", word);
                 word[0] = 0;
                 word_i = 0;
             }
@@ -138,13 +149,14 @@ parser_result_ptr parse(int i, const char *pt)
         }
         else if (pt[i] == ']')
         {
+            // printf("parser- end a list ']'\n");
             if (word_i > 0)
             {
                 word[word_i] = 0;
                 word_ptr w = word_init();
-                w->w.s =  xstrdup(word);
+                w->w.s = xstrdup(word);
                 pq_enqueue(result->pq, 's', w);
-                printf("add word to program queue (pp) %s\n", word);
+                // printf("add word to program queue (pp) %s\n", word);
                 word[0] = 0;
                 word_i = 0;
             }
@@ -154,12 +166,14 @@ parser_result_ptr parse(int i, const char *pt)
         }
         else if (pt[i] == ' ')
         {
+            // printf("parser- space ends a word ' '\n");
             if (word_i > 0)
             {
                 word[word_i] = 0;
                 word_ptr w = word_init();
-                w->w.s =  xstrdup(word);
-                pq_enqueue(result->pq, 's', w);                printf("add word to program queue (pp) %s\n", word);
+                w->w.s = xstrdup(word);
+                pq_enqueue(result->pq, 's', w);
+                // printf("add word to program queue (pp) %s\n", word);
                 word[0] = 0;
                 word_i = 0;
             }
@@ -175,6 +189,8 @@ parser_result_ptr parse(int i, const char *pt)
             word[word_i++] = pt[i++];
         }
     }
+    result->i = i;
+    // printf("parser- returns at i = %d\n", result->i);
     return result;
 };
 
@@ -184,7 +200,7 @@ int main()
     char input_program[100] = " 2 4 + goofy 'cool say'  `jj`  \"543\" ";
     char key[10];
     char str_value[80];
-    dictionary *d = dictionary_new(10);
+    // dictionary *d = dictionary_new(10);
     parser_result_ptr pr = parse(0, input_program);
     if (pr)
     {
