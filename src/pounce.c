@@ -6,7 +6,8 @@
 
 void pq_display_word(pq_node_ptr node);
 
-void pq_attendance(pq_node_ptr temp){
+void pq_attendance(pq_node_ptr temp)
+{
     printf("[");
 
     while (temp != NULL)
@@ -70,7 +71,6 @@ void pq_display_rear(pq_instance_ptr pq)
 
     pq_display_word(pq->rear);
 };
-
 
 #define MAX_W_LEN 40
 #define MAX_S_LEN 4096
@@ -190,6 +190,16 @@ parser_result_ptr parse(int i, const char *pt)
             word[word_i++] = pt[i++];
         }
     }
+    // last word
+    if (word_i > 0)
+    {
+        word[word_i] = 0;
+        pq_enqueue_s(result->pq, word);
+        // printf("add word to program queue (pp) %s\n", word);
+        word[0] = 0;
+        word_i = 0;
+    }
+
     result->i = i;
     return result;
 };
@@ -197,7 +207,7 @@ parser_result_ptr parse(int i, const char *pt)
 int main()
 {
     int option = 0, value = 0;
-    char input_program[100] = "a[b c ] [1 [2 ] 3 ]z "; //" 2 4 + goofy 'cool say'  `jj`  \"543\" ";
+    char input_program[100] = "a[b c] 00 [1[2]3]x y[]z"; // "a[b c] 00 [1[2]3]x y[z"; //" 2 4 + goofy 'cool say'  `jj`  \"543\" ";
     char key[10];
     char str_value[80];
     // dictionary *d = dictionary_new(10);
