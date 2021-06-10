@@ -125,7 +125,7 @@ bool pq_enqueue_l(pq_instance_ptr pq, pq_node_ptr value)
 	wp->w.list = value;
 
 	item->type = 'l';
-	item->data->w.list = value;
+	item->data = wp;
 	item->previous = NULL;
 
 	if (pq->rear == NULL)
