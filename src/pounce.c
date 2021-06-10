@@ -4,11 +4,14 @@
 #include "queue.c"
 #include "dict.c"
 
-void pq_display_word(pq_node_ptr node){
-    if (node->type == 's') {
+void pq_display_word(pq_node_ptr node)
+{
+    if (node->type == 's')
+    {
         printf(" %s ", node->data->w.s);
     }
-    else {
+    else
+    {
         printf(" ??? %c ", node->type);
     }
 }
@@ -52,7 +55,7 @@ void pq_display(pq_instance_ptr pq)
 
     while (temp != NULL)
     {
-//        printf("[%s]", temp->data);
+        //        printf("[%s]", temp->data);
         pq_display_word(temp);
         temp = temp->previous;
     }
@@ -121,10 +124,7 @@ parser_result_ptr parse(int i, const char *pt)
             if (!in_string)
             {
                 str[str_i] = 0; // null terminate the string
-                word_ptr w = word_init();
-
-                w->w.s = xstrdup(str);
-                pq_enqueue(result->pq, 's', w);
+                pq_enqueue_s(result->pq, str);
                 str[0] = 0;
                 str_i = 0;
             }
@@ -135,17 +135,16 @@ parser_result_ptr parse(int i, const char *pt)
             if (word_i > 0)
             {
                 word[word_i] = 0;
-                word_ptr w = word_init();
-                w->w.s = xstrdup(word);
-                pq_enqueue(result->pq, 's', w);
+                pq_enqueue_s(result->pq, word);
                 // printf("add word to program queue (pp) %s\n", word);
                 word[0] = 0;
                 word_i = 0;
             }
             i++;
-            word_ptr w = word_init();
-            w->w.list = parse(i, pt)->pq->front;
-            pq_enqueue(result->pq, 'l', w);
+            // word_ptr w = word_init();
+            // w->w.list = parse(i, pt)->pq->front;
+            // pq_enqueue_l(result->pq, 'l', w);
+            pq_enqueue_l(result->pq, parse(i, pt)->pq->front);
         }
         else if (pt[i] == ']')
         {
@@ -153,9 +152,7 @@ parser_result_ptr parse(int i, const char *pt)
             if (word_i > 0)
             {
                 word[word_i] = 0;
-                word_ptr w = word_init();
-                w->w.s = xstrdup(word);
-                pq_enqueue(result->pq, 's', w);
+                pq_enqueue_s(result->pq, word);
                 // printf("add word to program queue (pp) %s\n", word);
                 word[0] = 0;
                 word_i = 0;
@@ -170,9 +167,7 @@ parser_result_ptr parse(int i, const char *pt)
             if (word_i > 0)
             {
                 word[word_i] = 0;
-                word_ptr w = word_init();
-                w->w.s = xstrdup(word);
-                pq_enqueue(result->pq, 's', w);
+                pq_enqueue_s(result->pq, word);
                 // printf("add word to program queue (pp) %s\n", word);
                 word[0] = 0;
                 word_i = 0;

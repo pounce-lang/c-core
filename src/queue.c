@@ -82,22 +82,21 @@ bool is_pq_empty(pq_instance_ptr pq)
 	return (pq->front == NULL || pq->rear == NULL);
 }
 
-bool pq_requeue(pq_instance_ptr pq, char t, word_ptr value)
+bool pq_requeue_s(pq_instance_ptr pq, char *value)
 {
-
 	pq_node_ptr item = (pq_node_ptr)malloc(sizeof(struct pq_node));
-
 	if (item == NULL)
 	{
 		return false;
 	}
-
-	item->type = t;
-	if (t == 's')
+	word_ptr wp = word_init();
+	if (wp == NULL)
 	{
-		item->data = value;
+		return false;
 	}
-
+	wp->w.s = xstrcp(value);
+	item->type = 's';
+	item->data = wp;
 	if (pq->front == NULL)
 	{
 		pq->front = pq->rear = item;
@@ -108,24 +107,25 @@ bool pq_requeue(pq_instance_ptr pq, char t, word_ptr value)
 		item->previous = pq->front;
 		pq->front = item;
 	}
-
 	return true;
 }
 
-bool pq_enqueue(pq_instance_ptr pq, char t, word_ptr value)
+bool pq_enqueue_l(pq_instance_ptr pq, pq_node_ptr value)
 {
-
 	pq_node_ptr item = (pq_node_ptr)malloc(sizeof(struct pq_node));
-
 	if (item == NULL)
-		return false;
-
-	item->type = t;
-	if (t == 's')
 	{
-		item->data = value;
+		return false;
 	}
+	word_ptr wp = word_init();
+	if (wp == NULL)
+	{
+		return false;
+	}
+	wp->w.list = value;
 
+	item->type = 'l';
+	item->data->w.list = value;
 	item->previous = NULL;
 
 	if (pq->rear == NULL)
@@ -135,32 +135,62 @@ bool pq_enqueue(pq_instance_ptr pq, char t, word_ptr value)
 		pq->rear->previous = item;
 		pq->rear = item;
 	}
+	return true;
+};
 
+bool pq_enqueue_s(pq_instance_ptr pq, char *value)
+{
+	pq_node_ptr item = (pq_node_ptr)malloc(sizeof(struct pq_node));
+	if (item == NULL)
+	{
+		return false;
+	}
+	word_ptr wp = word_init();
+	if (wp == NULL)
+	{
+		return false;
+	}
+	wp->w.s = xstrcp(value);
+
+	item->type = 's';
+	item->data = wp;
+	item->previous = NULL;
+
+	if (pq->rear == NULL)
+		pq->front = pq->rear = item;
+	else
+	{
+		pq->rear->previous = item;
+		pq->rear = item;
+	}
 	return true;
 }
 
-const char *pq_dequeue(pq_instance_ptr pq)
+pq_node_ptr pq_dequeue(pq_instance_ptr pq)
 {
 
 	if (is_pq_empty(pq))
 	{
-
-		return "";
+		return NULL;
 	}
 	pq_node_ptr temp = pq->front;
-	const char *ret_val = pq->front->data->w.s;
+	pq_node_ptr ret_val = pq->front;
 	if (temp->previous == NULL)
 	{
 		pq->rear = NULL;
 	}
 	pq->front = pq->front->previous;
-	if (temp->type == 's')
-	{
-		free(temp->data->w.s);
-	}
-	free(temp);
 
 	return ret_val;
+}
+
+void pq_free_node(pq_node_ptr node)
+{
+	if (node->type == 's')
+	{
+		free(node->data->w.s);
+	}
+	free(node);
 }
 
 bool pq_clear(pq_instance_ptr pq)

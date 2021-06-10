@@ -9,4 +9,5 @@ possibly permissions need to be adjusted `chmod +x ./dist/pounce`
 
 ## tests
 `gcc -o ./dist/tests ./src/tests.c`
-
+`./dist/tests`
+Running this may take a few seconds since it does a simple stress/memory leak test.
