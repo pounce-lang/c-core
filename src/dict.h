@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "pounce.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,7 +30,6 @@ extern "C" {
 /*---------------------------------------------------------------------------
                                 New types
  ---------------------------------------------------------------------------*/
-
 
 /*-------------------------------------------------------------------------*/
 /**
@@ -44,7 +44,7 @@ extern "C" {
 typedef struct _dictionary_ {
     int             n ;     /** Number of entries in dictionary */
     ssize_t         size ;  /** Storage size */
-    char        **  val ;   /** List of string values */
+    pq_node_ptr  *  val ;   /** List of definition values */
     char        **  key ;   /** List of string keys */
     unsigned     *  hash ;  /** List of hash values for keys */
 } dictionary ;
@@ -106,7 +106,7 @@ void dictionary_del(dictionary * vd);
   dictionary object, you should not try to free it or modify it.
  */
 /*--------------------------------------------------------------------------*/
-const char * dictionary_get(const dictionary * d, const char * key, const char * def);
+pq_node_ptr dictionary_get(const dictionary * d, const char * key, pq_node_ptr def);
 
 
 /*-------------------------------------------------------------------------*/
@@ -135,7 +135,7 @@ const char * dictionary_get(const dictionary * d, const char * key, const char *
   This function returns non-zero in case of failure.
  */
 /*--------------------------------------------------------------------------*/
-int dictionary_set(dictionary * vd, const char * key, const char * val);
+int dictionary_set(dictionary * vd, const char * key, pq_node_ptr val);
 
 /*-------------------------------------------------------------------------*/
 /**
@@ -150,6 +150,8 @@ int dictionary_set(dictionary * vd, const char * key, const char * val);
 /*--------------------------------------------------------------------------*/
 void dictionary_unset(dictionary * d, const char * key);
 
+
+void pq_display_word(pq_node_ptr node);
 
 /*-------------------------------------------------------------------------*/
 /**

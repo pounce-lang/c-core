@@ -67,11 +67,11 @@ static char * xstrdup(const char * s)
 /*--------------------------------------------------------------------------*/
 static int dictionary_grow(dictionary * d)
 {
-    char        ** new_val ;
+    pq_node_ptr  * new_val ;
     char        ** new_key ;
     unsigned     * new_hash ;
 
-    new_val  = (char**) calloc(d->size * 2, sizeof *d->val);
+    new_val  = (pq_node_ptr*) calloc(d->size * 2, sizeof *d->val);
     new_key  = (char**) calloc(d->size * 2, sizeof *d->key);
     new_hash = (unsigned*) calloc(d->size * 2, sizeof *d->hash);
     if (!new_val || !new_key || !new_hash) {
@@ -158,7 +158,7 @@ dictionary * dictionary_new(size_t size)
 
     if (d) {
         d->size = size ;
-        d->val  = (char**) calloc(size, sizeof *d->val);
+        d->val  = (pq_node_ptr*) calloc(size, sizeof *d->val);
         d->key  = (char**) calloc(size, sizeof *d->key);
         d->hash = (unsigned*) calloc(size, sizeof *d->hash);
     }
@@ -206,7 +206,7 @@ void dictionary_del(dictionary * d)
   dictionary object, you should not try to free it or modify it.
  */
 /*--------------------------------------------------------------------------*/
-const char * dictionary_get(const dictionary * d, const char * key, const char * def)
+pq_node_ptr dictionary_get(const dictionary * d, const char * key, pq_node_ptr def)
 {
     unsigned    hash ;
     ssize_t      i ;
@@ -252,7 +252,7 @@ const char * dictionary_get(const dictionary * d, const char * key, const char *
   This function returns non-zero in case of failure.
  */
 /*--------------------------------------------------------------------------*/
-int dictionary_set(dictionary * d, const char * key, const char * val)
+int dictionary_set(dictionary * d, const char * key, pq_node_ptr val)
 {
     ssize_t         i ;
     unsigned       hash ;
@@ -270,10 +270,10 @@ int dictionary_set(dictionary * d, const char * key, const char * val)
                 if (!strcmp(key, d->key[i])) {   /* Same key */
                     /* Found a value: modify and return */
                     if (d->val[i]!=NULL)
-                        free(d->val[i]);
-                    d->val[i] = (val ? xstrdup(val) : NULL);
+                        pq_free_node(d->val[i]);
+                    d->val[i] = (val ? val : NULL);
                     /* Value has been modified: return */
-                    return 0 ;
+                    return 0;
                 }
             }
         }
@@ -294,7 +294,7 @@ int dictionary_set(dictionary * d, const char * key, const char * val)
     }
     /* Copy key */
     d->key[i]  = xstrdup(key);
-    d->val[i]  = (val ? xstrdup(val) : NULL) ;
+    d->val[i]  = (val ? val : NULL) ;
     d->hash[i] = hash;
     d->n ++ ;
     return 0 ;
@@ -348,6 +348,33 @@ void dictionary_unset(dictionary * d, const char * key)
     return ;
 }
 
+
+
+void pq_attendance(pq_node_ptr temp)
+{
+    printf("[");
+
+    while (temp != NULL)
+    {
+        pq_display_word(temp);
+        temp = temp->previous;
+    }
+
+    printf("]");
+}
+
+void pq_display_word(pq_node_ptr node)
+{
+    if (node->type == 's')
+    {
+        printf(" %s ", node->data->w.s);
+    }
+    else
+    {
+        pq_attendance(node->data->w.list);
+    }
+}
+
 /*-------------------------------------------------------------------------*/
 /**
   @brief    Dump a dictionary to an opened file pointer.
@@ -371,10 +398,11 @@ void dictionary_dump(const dictionary * d)
     }
     for (i=0 ; i<d->size ; i++) {
         if (d->key[i]) {
-            printf("%20s\t[%s]\n",
-                    d->key[i],
-                    d->val[i] ? d->val[i] : "UNDEF");
+            printf("%20s\t[",
+                    d->key[i]);
+            pq_display_word(d->val[i]);
+            printf("]\n");
         }
     }
-    return ;
+    return;
 }

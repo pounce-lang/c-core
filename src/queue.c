@@ -2,25 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-
-typedef struct word_struct
-{
-	union
-	{
-		char *s;
-		long i;
-		double f;
-		struct pq_node *list;
-	} w;
-} * word_ptr;
-
-typedef struct pq_node
-{
-	char type; // (w)ord, (v)alue, (l)ist, (")wrapped_string, (')wrapped_string, (`)wrapped_string
-	word_ptr data;
-	struct pq_node *previous;
-
-} * pq_node_ptr;
+#include "pounce.h"
 
 typedef struct pq_instance
 {
@@ -56,6 +38,30 @@ word_ptr word_init()
 	// printf("returning new word %d\n", &new_word);
 	return new_word;
 };
+pq_node_ptr pq_init_node() {
+	pq_node_ptr item = (pq_node_ptr)malloc(sizeof(struct pq_node));
+	if (item == NULL)
+	{
+		return false;
+	}
+	word_ptr wp = word_init();
+	if (wp == NULL)
+	{
+		return false;
+	}
+	item->data = wp;
+	item->previous = NULL;
+	return item;
+}
+
+void pq_free_node(pq_node_ptr node)
+{
+	if (node->type == 's')
+	{
+		free(node->data->w.s);
+	}
+	free(node);
+}
 
 pq_instance_ptr pq_init()
 {
@@ -84,19 +90,10 @@ bool is_pq_empty(pq_instance_ptr pq)
 
 bool pq_requeue_s(pq_instance_ptr pq, char *value)
 {
-	pq_node_ptr item = (pq_node_ptr)malloc(sizeof(struct pq_node));
-	if (item == NULL)
-	{
-		return false;
-	}
-	word_ptr wp = word_init();
-	if (wp == NULL)
-	{
-		return false;
-	}
-	wp->w.s = xstrcp(value);
+	pq_node_ptr item = pq_init_node();
+	item->data->w.s = xstrcp(value);
 	item->type = 's';
-	item->data = wp;
+
 	if (pq->front == NULL)
 	{
 		pq->front = pq->rear = item;
@@ -112,21 +109,9 @@ bool pq_requeue_s(pq_instance_ptr pq, char *value)
 
 bool pq_enqueue_l(pq_instance_ptr pq, pq_node_ptr value)
 {
-	pq_node_ptr item = (pq_node_ptr)malloc(sizeof(struct pq_node));
-	if (item == NULL)
-	{
-		return false;
-	}
-	word_ptr wp = word_init();
-	if (wp == NULL)
-	{
-		return false;
-	}
-	wp->w.list = value;
-
+	pq_node_ptr item = pq_init_node();
+	item->data->w.list = value;
 	item->type = 'l';
-	item->data = wp;
-	item->previous = NULL;
 
 	if (pq->rear == NULL)
 		pq->front = pq->rear = item;
@@ -140,21 +125,9 @@ bool pq_enqueue_l(pq_instance_ptr pq, pq_node_ptr value)
 
 bool pq_enqueue_s(pq_instance_ptr pq, char *value)
 {
-	pq_node_ptr item = (pq_node_ptr)malloc(sizeof(struct pq_node));
-	if (item == NULL)
-	{
-		return false;
-	}
-	word_ptr wp = word_init();
-	if (wp == NULL)
-	{
-		return false;
-	}
-	wp->w.s = xstrcp(value);
-
+	pq_node_ptr item = pq_init_node();
+	item->data->w.s = xstrcp(value);
 	item->type = 's';
-	item->data = wp;
-	item->previous = NULL;
 
 	if (pq->rear == NULL)
 		pq->front = pq->rear = item;
@@ -184,14 +157,6 @@ pq_node_ptr pq_dequeue(pq_instance_ptr pq)
 	return ret_val;
 }
 
-void pq_free_node(pq_node_ptr node)
-{
-	if (node->type == 's')
-	{
-		free(node->data->w.s);
-	}
-	free(node);
-}
 
 bool pq_clear(pq_instance_ptr pq)
 {

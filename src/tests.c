@@ -4,6 +4,13 @@
 #include "queue.c"
 #include "dict.c"
 
+pq_node_ptr make_string_node(char * s){
+    pq_node_ptr n = pq_init_node();
+    n->type = 's';
+    n->data->w.s = xstrcp(s);
+    return n;
+}
+
 void main()
 {
     pq_node_ptr temp_value;
@@ -91,23 +98,23 @@ void main()
     }
 
     dictionary *d = dictionary_new(10);
-    dictionary_set(d, "q", "abc");
-    dictionary_set(d, "w", "thi");
-    dictionary_set(d, "e", "sis");
-    dictionary_set(d, "r", "the");
-    dictionary_set(d, "t", "first");
-    dictionary_set(d, "y", "dup");
-    dictionary_set(d, "u", "ini");
-    dictionary_set(d, "i", "drop");
-    dictionary_set(d, "q2", "abc");
-    dictionary_set(d, "w2", "thi");
-    dictionary_set(d, "e2", "sis");
-    dictionary_set(d, "r2", "the");
-    dictionary_set(d, "t2", "first");
-    dictionary_set(d, "y2", "dup");
-    dictionary_set(d, "u2", "ini");
-    dictionary_set(d, "i2", "drop");
-    dictionary_set(d, "i2", "nope");
+    dictionary_set(d, "qs", make_string_node("abc"));
+    dictionary_set(d, "w", make_string_node("thi"));
+    dictionary_set(d, "e", make_string_node("sis"));
+    dictionary_set(d, "r", make_string_node("the"));
+    dictionary_set(d, "t", make_string_node("first"));
+    dictionary_set(d, "y", make_string_node("dup"));
+    dictionary_set(d, "u", make_string_node("ini"));
+    dictionary_set(d, "i", make_string_node("drop"));
+    dictionary_set(d, "q2", make_string_node("abc"));
+    dictionary_set(d, "w2", make_string_node("thi"));
+    dictionary_set(d, "e2", make_string_node("sis"));
+    dictionary_set(d, "r2", make_string_node("the"));
+    dictionary_set(d, "t2", make_string_node("first"));
+    dictionary_set(d, "y2", make_string_node("dup"));
+    dictionary_set(d, "u2", make_string_node("ini"));
+    dictionary_set(d, "i2", make_string_node("drop"));
+    dictionary_set(d, "i2", make_string_node("nope"));
     dictionary_dump(d);
 
     if (all_passing)

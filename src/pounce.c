@@ -3,21 +3,8 @@
 #include <stdbool.h>
 #include "queue.c"
 #include "dict.c"
+#include "pounce.h"
 
-void pq_display_word(pq_node_ptr node);
-
-void pq_attendance(pq_node_ptr temp)
-{
-    printf("[");
-
-    while (temp != NULL)
-    {
-        pq_display_word(temp);
-        temp = temp->previous;
-    }
-
-    printf("]");
-}
 
 void pq_display(pq_instance_ptr pq)
 {
@@ -32,18 +19,6 @@ void pq_display(pq_instance_ptr pq)
     printf("\n");
     pq_attendance(n);
     printf("\n");
-}
-
-void pq_display_word(pq_node_ptr node)
-{
-    if (node->type == 's')
-    {
-        printf(" %s ", node->data->w.s);
-    }
-    else
-    {
-        pq_attendance(node->data->w.list);
-    }
 }
 
 void pq_display_front(pq_instance_ptr pq)
@@ -205,12 +180,8 @@ parser_result_ptr parse(int i, const char *pt)
 };
 
 int main()
-{
-    int option = 0, value = 0;
+{  
     char input_program[100] = "a[b c] 00 [1[2]3]x y[]z"; // "a[b c] 00 [1[2]3]x y[z"; //" 2 4 + goofy 'cool say'  `jj`  \"543\" ";
-    char key[10];
-    char str_value[80];
-    // dictionary *d = dictionary_new(10);
     parser_result_ptr pr = parse(0, input_program);
     if (pr)
     {
