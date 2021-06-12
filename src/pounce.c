@@ -10,13 +10,12 @@ void pq_display(pq_instance_ptr pq)
 {
     if (is_pq_empty(pq))
     {
-        printf("\nThe queue is empty!\n");
+        printf("The queue is empty!\n");
         return;
     }
 
     pq_node_ptr n = pq->front;
 
-    printf("\n");
     pq_attendance(n);
     printf("\n");
 }
@@ -179,9 +178,14 @@ parser_result_ptr parse(int i, const char *pt)
     return result;
 };
 
+int purr(ps_instance_ptr s, pq_instance_ptr p, dictionary * d)
+{
+    
+};
+
 int main()
 {  
-    char input_program[100] = "a[b c] 00 [1[2]3]x y[]z"; // "a[b c] 00 [1[2]3]x y[z"; //" 2 4 + goofy 'cool say'  `jj`  \"543\" ";
+    char input_program[100] = "aaa bbb append"; // "a[b c] 00 [1[2]3]x y[]z"; // "a[b c] 00 [1[2]3]x y[z"; //" 2 4 + goofy 'cool say'  `jj`  \"543\" ";
     parser_result_ptr pr = parse(0, input_program);
     if (pr)
     {

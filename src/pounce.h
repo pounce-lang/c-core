@@ -14,6 +14,7 @@ typedef struct word_struct
 		long i;
 		double f;
 		struct pq_node *list;
+        struct pq_node * (*fun)(struct pq_node *);
 	} w;
 } * word_ptr;
 
