@@ -232,7 +232,6 @@ ps_instance_ptr purr(ps_instance_ptr s, pq_instance_ptr p, dictionary *d)
                 }
                 else if (w_def->type == 'f')
                 {
-                    printf("run fun\n");
                     pq_node_ptr res = w_def->data->w.fun(s);
                     if (!res)
                     {
@@ -283,6 +282,10 @@ ps_instance_ptr purr(ps_instance_ptr s, pq_instance_ptr p, dictionary *d)
         else if (w && w->type == 'i')
         {
             ps_push_i(s, w->data->w.i);
+        }
+        else if (w && w->type == 'l')
+        {
+            ps_push_l(s, w->data->w.list);
         }
     }
     return s;
@@ -344,7 +347,7 @@ pq_node_ptr pf_strAppend(ps_instance_ptr s)
 
 pq_node_ptr pf_intAdd(ps_instance_ptr s)
 {
-    ps_display(s);
+    // ps_display(s);
     pq_node_ptr a = ps_pop(s);
     if (a && a->type == 'i')
     {
@@ -365,9 +368,33 @@ pq_node_ptr pf_intAdd(ps_instance_ptr s)
     return NULL;
 };
 
+pq_node_ptr pf_swap(ps_instance_ptr s)
+{
+    pq_node_ptr new_second = s->top;
+    if (new_second)
+    {
+        pq_node_ptr new_top = s->top->previous;
+        if (new_top)
+        {
+            new_second->previous = new_top->previous;
+            new_top->previous = new_second;
+            s->top = new_top;
+        }
+        else
+        {
+            printf("swap expected top-1 to be a stack element\n");
+        }
+    }
+    else
+    {
+        printf("swap expected top to be a stack element\n");
+    }
+    return NULL;
+};
+
 int main()
 {
-    char input_program[100] = "aaa bbb end noop 3 4 + anId w ow strAppend"; // "a[b c] 00 [1[2]3]x y[]z"; // "a[b c] 00 [1[2]3]x y[z"; //" 2 4 + goofy 'cool say'  `jj`  \"543\" ";
+    char input_program[100] = "aaa bbb end noop 3 4 + anId w ow strAppend [] swap"; // "a[b c] 00 [1[2]3]x y[]z"; // "a[b c] 00 [1[2]3]x y[z"; //" 2 4 + goofy 'cool say'  `jj`  \"543\" ";
     parser_result_ptr pr = parse(0, input_program);
     if (pr)
     {
@@ -380,8 +407,9 @@ int main()
         dictionary_set(wd, "anId", make_fun_node(pf_anId));
         dictionary_set(wd, "strAppend", make_fun_node(pf_strAppend));
         dictionary_set(wd, "+", make_fun_node(pf_intAdd));
-        printf("Dictionary (word defs):\n");
-        dictionary_dump(wd);
+        dictionary_set(wd, "swap", make_fun_node(pf_swap));
+        // printf("Dictionary (word defs):\n");
+        // dictionary_dump(wd);
         ps_instance_ptr result_stack = purr(ps_init(), pr->pq, wd);
         printf("Stack (result):\n");
         ps_display(result_stack);
