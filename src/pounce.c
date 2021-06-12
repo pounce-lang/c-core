@@ -392,9 +392,78 @@ pq_node_ptr pf_swap(ps_instance_ptr s)
     return NULL;
 };
 
+pq_node_ptr pf_drop(ps_instance_ptr s)
+{
+    if (!ps_pop(s))
+    {
+        printf("'drop' expected an element at the top of the stack, but it was empty\n");
+    }
+    return NULL;
+};
+// size of list
+pq_node_ptr pf_size(ps_instance_ptr s)
+{
+    pq_node_ptr e = s->top;
+    if (!e || e->type != 'l')
+    {
+        printf("'size' expected a list at the top of the stack\n");
+        return NULL;
+    }
+    long c = 0;
+    pq_node_ptr l = e->data->w.list;
+    while (l)
+    {
+        c++;
+        l = l->previous;
+    }
+    return make_integer_node(c);
+};
+
+pq_node_ptr dup_node(pq_node_ptr e)
+{
+    if (!e)
+        return NULL;
+    if (e->type == 's')
+        return make_string_node(e->data->w.s);
+    if (e->type == 'i')
+        return make_integer_node(e->data->w.i);
+    if (e->type == 'l')
+    {
+        pq_node_ptr l = e->data->w.list;
+        pq_node_ptr new_l = pq_init_node();
+        new_l->type = 'l';
+        new_l->data->w.list = NULL;
+        pq_node_ptr cur, head = NULL;
+        if (l)
+        {
+            cur = head = dup_node(l);
+            l = l->previous;
+            while (l)
+            {
+                cur->previous = dup_node(l);
+                l = l->previous;
+                cur = cur->previous;
+            }
+            cur->previous = NULL;
+        }
+        new_l->data->w.list = head;
+        return new_l;
+    }
+}
+pq_node_ptr pf_dup(ps_instance_ptr s)
+{
+    pq_node_ptr e = s->top;
+    if (!e)
+    {
+        printf("'dup' expected an element at the top of the stack\n");
+        return NULL;
+    }
+    return dup_node(e);
+};
+
 int main()
 {
-    char input_program[100] = "aaa bbb end noop 3 4 + anId w ow strAppend [] swap"; // "a[b c] 00 [1[2]3]x y[]z"; // "a[b c] 00 [1[2]3]x y[z"; //" 2 4 + goofy 'cool say'  `jj`  \"543\" ";
+    char input_program[100] = "5 [3 9 s [3 4] 23] dup"; // "aaa bbb end noop 3 4 + anId IDK drop [one] w ow strAppend swap size"; // "a[b c] 00 [1[2]3]x y[]z"; // "a[b c] 00 [1[2]3]x y[z"; //" 2 4 + goofy 'cool say'  `jj`  \"543\" ";
     parser_result_ptr pr = parse(0, input_program);
     if (pr)
     {
@@ -408,6 +477,9 @@ int main()
         dictionary_set(wd, "strAppend", make_fun_node(pf_strAppend));
         dictionary_set(wd, "+", make_fun_node(pf_intAdd));
         dictionary_set(wd, "swap", make_fun_node(pf_swap));
+        dictionary_set(wd, "drop", make_fun_node(pf_drop));
+        dictionary_set(wd, "size", make_fun_node(pf_size));
+        dictionary_set(wd, "dup", make_fun_node(pf_dup));
         // printf("Dictionary (word defs):\n");
         // dictionary_dump(wd);
         ps_instance_ptr result_stack = purr(ps_init(), pr->pq, wd);
