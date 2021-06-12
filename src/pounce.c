@@ -419,6 +419,7 @@ pq_node_ptr pf_size(ps_instance_ptr s)
     return make_integer_node(c);
 };
 
+// duplicate a node, recursive for lists
 pq_node_ptr dup_node(pq_node_ptr e)
 {
     if (!e)
@@ -460,10 +461,56 @@ pq_node_ptr pf_dup(ps_instance_ptr s)
     }
     return dup_node(e);
 };
+pq_node_ptr pf_cons(ps_instance_ptr s)
+{
+    pq_node_ptr list = s->top;
+    if (list && list->type == 'l')
+    {
+        pq_node_ptr ele = s->top->previous;
+        if (ele)
+        {
+            list->previous = ele->previous;
+            ele->previous = list->data->w.list;
+            list->data->w.list = ele;
+        }
+        else
+        {
+            printf("'cons' expected top-1 to be a stack element\n");
+        }
+    }
+    else
+    {
+        printf("'cons' expected the top the stack to be a list\n");
+    }
+    return NULL;
+};
+pq_node_ptr pf_uncons(ps_instance_ptr s)
+{
+    pq_node_ptr e = s->top;
+    if (!e || e->type != 'l')
+    {
+        printf("'uncons' expected a list at the top of the stack\n");
+        return NULL;
+    }
+    pq_node_ptr l = e->data->w.list;
+    pq_node_ptr first;
+    if (l)
+    {
+        first = l;
+        e->data->w.list = l->previous;
+        first->previous = e->previous;
+        e->previous = first;
+    }
+    else
+    {
+        printf("'uncons' expected a list with at least one element\n");
+    }
+    return NULL;
+};
 
 int main()
 {
-    char input_program[100] = "5 [3 9 s [3 4] 23] dup"; // "aaa bbb end noop 3 4 + anId IDK drop [one] w ow strAppend swap size"; // "a[b c] 00 [1[2]3]x y[]z"; // "a[b c] 00 [1[2]3]x y[z"; //" 2 4 + goofy 'cool say'  `jj`  \"543\" ";
+    char input_program[100] = "5 [[1 []] 2 3] uncons cons cons"; //"5 [32 9 s [3 4] 23] dup [] dup"; // "aaa bbb end noop 3 4 + anId IDK drop [one] w ow strAppend swap size"; // "a[b c] 00 [1[2]3]x y[]z"; // "a[b c] 00 [1[2]3]x y[z"; //" 2 4 + goofy 'cool say'  `jj`  \"543\" ";
     parser_result_ptr pr = parse(0, input_program);
     if (pr)
     {
@@ -480,6 +527,8 @@ int main()
         dictionary_set(wd, "drop", make_fun_node(pf_drop));
         dictionary_set(wd, "size", make_fun_node(pf_size));
         dictionary_set(wd, "dup", make_fun_node(pf_dup));
+        dictionary_set(wd, "cons", make_fun_node(pf_cons));
+        dictionary_set(wd, "uncons", make_fun_node(pf_uncons));
         // printf("Dictionary (word defs):\n");
         // dictionary_dump(wd);
         ps_instance_ptr result_stack = purr(ps_init(), pr->pq, wd);
