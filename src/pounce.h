@@ -5,33 +5,33 @@
 extern "C" {
 #endif
 
-
 typedef struct word_struct
 {
 	union
 	{
 		char *s;
 		long i;
-		double f;
+		double d;
 		struct pq_node *list;
+		struct pq_node *(*fun)(ps_instance_ptr); 
 	} w;
 } * word_ptr;
 
 typedef struct pq_node
 {
-	char type; // (w)ord, (v)alue, (l)ist, (")wrapped_string, (')wrapped_string, (`)wrapped_string
+	char type; // (s)tring, (i)nt, (l)ist, (f)unction (d)ouble presision float
 	word_ptr data;
 	struct pq_node *previous;
 
 } * pq_node_ptr;
 
+typedef struct ps_instance
+{
+	pq_node_ptr top; // = NULL;
+} * ps_instance_ptr;
+
 void pq_display_word(pq_node_ptr node);
 
-typedef union {
-    char * phrase;
-    pq_node_ptr (*fun)(pq_node_ptr);
-  } defined;
-// } definition ;
 
 #ifdef __cplusplus
 }
