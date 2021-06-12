@@ -4,10 +4,6 @@
 #include <stdbool.h>
 #include "pounce.h"
 
-typedef struct ps_instance
-{
-	pq_node_ptr top; // = NULL;
-} * ps_instance_ptr;
 
 // static char *xstrcp(const char *s)
 // {
@@ -108,6 +104,22 @@ bool ps_push_s(ps_instance_ptr ps, char *value)
 	pq_node_ptr item = ps_init_node();
 	item->data->w.s = xstrcp(value);
 	item->type = 's';
+
+	if (ps->top == NULL)
+		ps->top = item;
+	else
+	{
+		item->previous = ps->top;
+		ps->top = item;
+	}
+	return true;
+}
+
+bool ps_push_i(ps_instance_ptr ps, long value)
+{
+	pq_node_ptr item = ps_init_node();
+	item->data->w.i = value;
+	item->type = 'i';
 
 	if (ps->top == NULL)
 		ps->top = item;
