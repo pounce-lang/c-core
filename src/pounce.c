@@ -67,6 +67,7 @@ typedef struct parser_result
     pq_instance_ptr pq;
     int i;
 } * parser_result_ptr;
+pq_node_ptr dup_node(pq_node_ptr e);
 
 bool strToInt(long *val, char *s)
 {
@@ -228,7 +229,7 @@ ps_instance_ptr purr(ps_instance_ptr s, pq_instance_ptr p, dictionary *d)
                 }
                 else if (w_def->type == 'l')
                 {
-                    ps_push_l(s, w_def->data->w.list);
+                    ps_push_l(s, dup_node(w_def)->data->w.list);
                 }
                 else if (w_def->type == 'f')
                 {
@@ -321,15 +322,6 @@ pq_node_ptr make_integer_node(long i)
     return n;
 }
 
-pq_node_ptr pf_noop(ps_instance_ptr s)
-{
-    return NULL;
-};
-
-pq_node_ptr pf_anId(ps_instance_ptr s)
-{
-    return make_string_node("_anId_");
-};
 pq_node_ptr pf_strAppend(ps_instance_ptr s)
 {
     pq_node_ptr a = ps_pop(s);
@@ -508,37 +500,32 @@ pq_node_ptr pf_uncons(ps_instance_ptr s)
     return NULL;
 };
 
-int main()
+// pq_node_ptr pf_play(ps_instance_ptr s)
+// {
+//     pq_node_ptr list = s->top;
+//     if (list && list->type == 'l')
+//     {
+//         pq_requeue_l(pq, l);
+//     }
+//     else
+//     {
+//         printf("'play' expected the top the stack to be a list\n");
+//     }
+//     return NULL;
+// };
+dictionary *init_core_word_dictionary()
 {
-    char input_program[100] = "5 [[1 []] 2 3] uncons cons cons"; //"5 [32 9 s [3 4] 23] dup [] dup"; // "aaa bbb end noop 3 4 + anId IDK drop [one] w ow strAppend swap size"; // "a[b c] 00 [1[2]3]x y[]z"; // "a[b c] 00 [1[2]3]x y[z"; //" 2 4 + goofy 'cool say'  `jj`  \"543\" ";
-    parser_result_ptr pr = parse(0, input_program);
-    if (pr)
-    {
-        printf("Parsed (pounce program):\n");
-        pq_display(pr->pq);
-        dictionary *wd = dictionary_new(10);
-        dictionary_set(wd, "aaa", make_string_node("AAA"));
-        dictionary_set(wd, "bbb", make_list_node("abc def"));
-        dictionary_set(wd, "noop", make_fun_node(pf_noop));
-        dictionary_set(wd, "anId", make_fun_node(pf_anId));
-        dictionary_set(wd, "strAppend", make_fun_node(pf_strAppend));
-        dictionary_set(wd, "+", make_fun_node(pf_intAdd));
-        dictionary_set(wd, "swap", make_fun_node(pf_swap));
-        dictionary_set(wd, "drop", make_fun_node(pf_drop));
-        dictionary_set(wd, "size", make_fun_node(pf_size));
-        dictionary_set(wd, "dup", make_fun_node(pf_dup));
-        dictionary_set(wd, "cons", make_fun_node(pf_cons));
-        dictionary_set(wd, "uncons", make_fun_node(pf_uncons));
-        // printf("Dictionary (word defs):\n");
-        // dictionary_dump(wd);
-        ps_instance_ptr result_stack = purr(ps_init(), pr->pq, wd);
-        printf("Stack (result):\n");
-        ps_display(result_stack);
-    }
-    else
-    {
-        printf("failed to parse [%s]", input_program);
-        return 1;
-    }
-    return 0;
+    dictionary *wd = dictionary_new(10);
+    dictionary_set(wd, "twice", make_list_node("dup +"));
+    dictionary_set(wd, "strAppend", make_fun_node(pf_strAppend));
+    dictionary_set(wd, "+", make_fun_node(pf_intAdd));
+    dictionary_set(wd, "swap", make_fun_node(pf_swap));
+    dictionary_set(wd, "drop", make_fun_node(pf_drop));
+    dictionary_set(wd, "size", make_fun_node(pf_size));
+    dictionary_set(wd, "dup", make_fun_node(pf_dup));
+    dictionary_set(wd, "cons", make_fun_node(pf_cons));
+    dictionary_set(wd, "uncons", make_fun_node(pf_uncons));
+    return wd;
 }
+
+// test (early) "5 [[1 []] 2 3] uncons cons cons"; //"5 [32 9 s [3 4] 23] dup [] dup"; // "aaa bbb end noop 3 4 + anId IDK drop [one] w ow strAppend swap size"; // "a[b c] 00 [1[2]3]x y[]z"; // "a[b c] 00 [1[2]3]x y[z"; //" 2 4 + goofy 'cool say'  `jj`  \"543\" ";
