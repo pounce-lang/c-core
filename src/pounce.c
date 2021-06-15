@@ -6,6 +6,9 @@
 #include "stack.c"
 #include "pounce.h"
 
+pq_node_ptr pf_play(ps_instance_ptr s, pq_instance_ptr p);
+
+
 void ps_display(ps_instance_ptr ps)
 {
     if (is_ps_empty(ps))
@@ -230,10 +233,11 @@ ps_instance_ptr purr(ps_instance_ptr s, pq_instance_ptr p, dictionary *d)
                 else if (w_def->type == 'l')
                 {
                     ps_push_l(s, dup_node(w_def)->data->w.list);
+                    pq_requeue_s(p, "play");
                 }
                 else if (w_def->type == 'f')
                 {
-                    pq_node_ptr res = w_def->data->w.fun(s);
+                    pq_node_ptr res = w_def->data->w.fun(s, p);
                     if (!res)
                     {
                         // OK NULL means nothing to add to the stack
@@ -307,7 +311,7 @@ pq_node_ptr make_list_node(char *s)
     n->data->w.list = pr->pq->front;
     return n;
 }
-pq_node_ptr make_fun_node(pq_node_ptr (*fun)(ps_instance_ptr))
+pq_node_ptr make_fun_node(pq_node_ptr (*fun)(ps_instance_ptr, pq_instance_ptr))
 {
     pq_node_ptr n = pq_init_node();
     n->type = 'f';
@@ -322,7 +326,7 @@ pq_node_ptr make_integer_node(long i)
     return n;
 }
 
-pq_node_ptr pf_strAppend(ps_instance_ptr s)
+pq_node_ptr pf_strAppend(ps_instance_ptr s, pq_instance_ptr p)
 {
     pq_node_ptr a = ps_pop(s);
     if (a && a->type == 's')
@@ -330,14 +334,34 @@ pq_node_ptr pf_strAppend(ps_instance_ptr s)
         pq_node_ptr b = ps_pop(s);
         if (b && b->type == 's')
         {
-            strncat(b->data->w.s, a->data->w.s, strlen(a->data->w.s));
-            return make_string_node(b->data->w.s);
+            char *result;
+            size_t len;
+
+            len = strlen(b->data->w.s) + strlen(a->data->w.s) + 1;
+            result = (char *)malloc(len);
+            if (result)
+            {
+                memcpy(result, b->data->w.s, strlen(b->data->w.s) + 1);
+            }
+            strcat(result, a->data->w.s);
+            pq_free_node(a);
+            pq_free_node(b);
+            
+            return make_string_node(result);
         }
+        else
+        {
+            fprintf(stderr, "strAppend encountered a non string at top(-1) of stack\n");
+        }
+    }
+    else
+    {
+        fprintf(stderr, "strAppend encountered a non string at top of stack\n");
     }
     return NULL;
 };
 
-pq_node_ptr pf_intAdd(ps_instance_ptr s)
+pq_node_ptr pf_intAdd(ps_instance_ptr s, pq_instance_ptr p)
 {
     // ps_display(s);
     pq_node_ptr a = ps_pop(s);
@@ -350,7 +374,7 @@ pq_node_ptr pf_intAdd(ps_instance_ptr s)
         }
         else
         {
-            printf("intAdd expected top-1 to be integer, but got type %c instead\n", a->type);
+            printf("intAdd expected top(-1) to be integer, but got type %c instead\n", a->type);
         }
     }
     else
@@ -359,7 +383,7 @@ pq_node_ptr pf_intAdd(ps_instance_ptr s)
     }
     return NULL;
 };
-pq_node_ptr pf_intMult(ps_instance_ptr s)
+pq_node_ptr pf_intMult(ps_instance_ptr s, pq_instance_ptr p)
 {
     // ps_display(s);
     pq_node_ptr a = ps_pop(s);
@@ -372,7 +396,7 @@ pq_node_ptr pf_intMult(ps_instance_ptr s)
         }
         else
         {
-            printf("intMult expected top-1 to be integer, but got type %c instead\n", a->type);
+            printf("intMult expected top(-1) to be integer, but got type %c instead\n", a->type);
         }
     }
     else
@@ -382,7 +406,7 @@ pq_node_ptr pf_intMult(ps_instance_ptr s)
     return NULL;
 };
 
-pq_node_ptr pf_swap(ps_instance_ptr s)
+pq_node_ptr pf_swap(ps_instance_ptr s, pq_instance_ptr p)
 {
     pq_node_ptr new_second = s->top;
     if (new_second)
@@ -396,7 +420,7 @@ pq_node_ptr pf_swap(ps_instance_ptr s)
         }
         else
         {
-            printf("swap expected top-1 to be a stack element\n");
+            printf("swap expected top(-1) to be a stack element\n");
         }
     }
     else
@@ -406,7 +430,7 @@ pq_node_ptr pf_swap(ps_instance_ptr s)
     return NULL;
 };
 
-pq_node_ptr pf_drop(ps_instance_ptr s)
+pq_node_ptr pf_drop(ps_instance_ptr s, pq_instance_ptr p)
 {
     if (!ps_pop(s))
     {
@@ -415,7 +439,7 @@ pq_node_ptr pf_drop(ps_instance_ptr s)
     return NULL;
 };
 // size of list
-pq_node_ptr pf_size(ps_instance_ptr s)
+pq_node_ptr pf_size(ps_instance_ptr s, pq_instance_ptr p)
 {
     pq_node_ptr e = s->top;
     if (!e || e->type != 'l')
@@ -465,7 +489,7 @@ pq_node_ptr dup_node(pq_node_ptr e)
         return new_l;
     }
 }
-pq_node_ptr pf_dup(ps_instance_ptr s)
+pq_node_ptr pf_dup(ps_instance_ptr s, pq_instance_ptr p)
 {
     pq_node_ptr e = s->top;
     if (!e)
@@ -475,7 +499,7 @@ pq_node_ptr pf_dup(ps_instance_ptr s)
     }
     return dup_node(e);
 };
-pq_node_ptr pf_cons(ps_instance_ptr s)
+pq_node_ptr pf_cons(ps_instance_ptr s, pq_instance_ptr p)
 {
     pq_node_ptr list = s->top;
     if (list && list->type == 'l')
@@ -489,7 +513,7 @@ pq_node_ptr pf_cons(ps_instance_ptr s)
         }
         else
         {
-            printf("'cons' expected top-1 to be a stack element\n");
+            printf("'cons' expected top(-1) to be a stack element\n");
         }
     }
     else
@@ -498,7 +522,7 @@ pq_node_ptr pf_cons(ps_instance_ptr s)
     }
     return NULL;
 };
-pq_node_ptr pf_uncons(ps_instance_ptr s)
+pq_node_ptr pf_uncons(ps_instance_ptr s, pq_instance_ptr p)
 {
     pq_node_ptr e = s->top;
     if (!e || e->type != 'l')
@@ -522,19 +546,37 @@ pq_node_ptr pf_uncons(ps_instance_ptr s)
     return NULL;
 };
 
-// pq_node_ptr pf_play(ps_instance_ptr s)
-// {
-//     pq_node_ptr list = s->top;
-//     if (list && list->type == 'l')
-//     {
-//         pq_requeue_l(pq, l);
-//     }
-//     else
-//     {
-//         printf("'play' expected the top the stack to be a list\n");
-//     }
-//     return NULL;
-// };
+pq_node_ptr reverse_copy(pq_node_ptr l) {
+    pq_node_ptr rev;
+    pq_node_ptr link = NULL;
+    while (l)
+    {
+        rev = dup_node(l);
+        l = l->previous;
+        rev->previous = link;
+        link = rev;
+    }
+    return rev;
+}
+
+pq_node_ptr pf_play(ps_instance_ptr s, pq_instance_ptr p)
+{
+    pq_node_ptr e = ps_pop(s);
+    if (!e || e->type != 'l')
+    {
+        printf("'play' expected a list at the top of the stack\n");
+        return NULL;
+    }
+    pq_node_ptr l = e->data->w.list;
+    pq_node_ptr rev = reverse_copy(l);
+    while(rev) {
+        l = rev->previous;
+        pq_requeue(p, rev);
+        rev = l;
+    }
+    return NULL;
+};
+
 dictionary *init_core_word_dictionary()
 {
     dictionary *wd = dictionary_new(10);
@@ -548,6 +590,7 @@ dictionary *init_core_word_dictionary()
     dictionary_set(wd, "dup", make_fun_node(pf_dup));
     dictionary_set(wd, "cons", make_fun_node(pf_cons));
     dictionary_set(wd, "uncons", make_fun_node(pf_uncons));
+    dictionary_set(wd, "play", make_fun_node(pf_play));
     return wd;
 }
 

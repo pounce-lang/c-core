@@ -112,6 +112,24 @@ bool pq_requeue_s(pq_instance_ptr pq, char *value)
 	}
 	return true;
 }
+bool pq_requeue(pq_instance_ptr pq, pq_node_ptr item)
+{
+	if (!item)
+	{
+		return false;
+	}
+	if (pq->front == NULL)
+	{
+		pq->front = pq->rear = item;
+		item->previous = NULL;
+	}
+	else
+	{
+		item->previous = pq->front;
+		pq->front = item;
+	}
+	return true;
+}
 
 bool pq_enqueue_l(pq_instance_ptr pq, pq_node_ptr value)
 {

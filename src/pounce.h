@@ -13,7 +13,7 @@ typedef struct word_struct
 		long i;
 		double d;
 		struct pq_node *list;
-		struct pq_node *(*fun)(ps_instance_ptr); 
+		struct pq_node *(*fun)(ps_instance_ptr, pq_instance_ptr); 
 	} w;
 } * word_ptr;
 
