@@ -3,7 +3,7 @@
 
 ## build
 
-`gcc -o ./dist/repl ./src/repl.c`
+`gcc -o ./dist/repl ./src/repl.c ./src/linenoise/linenoise.c`
 
 `./dist/repl`
 

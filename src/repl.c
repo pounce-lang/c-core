@@ -1,5 +1,8 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pounce.c"
+#include "linenoise/linenoise.h"
 
 int main(int argc, char **argv)
 {
@@ -22,6 +25,14 @@ int main(int argc, char **argv)
         printf("Pounce c-core version: 0.01\n");
         return 1;
     }
+
+    dictionary *wd = init_core_word_dictionary();
+    if (argc == 2 && (strcmp(argv[1], "-dd") == 0 || strcmp(argv[1], "--display-word-dictionary") == 0))
+    {
+        printf("Dictionary (word defs):\n");
+        dictionary_dump(wd);
+    }
+    // possibly run pounce via file io
     if (argc >= 3)
     {
         const char *input_fn = argv[1];
@@ -43,39 +54,38 @@ int main(int argc, char **argv)
     }
     // otherwise terminal i/o
 
-    char input_program[1024];
-    dictionary *wd = init_core_word_dictionary();
-    if (argc == 2 && (strcmp(argv[1], "-dd") == 0 || strcmp(argv[1], "--display-word-dictionary") == 0))
-    {
-        printf("Dictionary (word defs):\n");
-        dictionary_dump(wd);
-    }
+    linenoiseHistoryLoad("repl-history.txt"); /* Load the history at startup */
+    linenoiseHistorySetMaxLen(100);
+
+    char *input_program;
+    ps_instance_ptr stack = ps_init();
     printf("Pounce REPL (enter Pounce words or type 'exit' or <Ctrl-c> to leave)\n");
-    while (true)
+    while ((input_program = linenoise("pounce> ")) != NULL)
     {
-        printf("> ");
-        fgets(input_program, sizeof(input_program), stdin);
-        input_program[strlen(input_program) - 1] = 0;
         if (strcmp(input_program, "exit") == 0)
         {
             return 0;
         }
         parser_result_ptr pr = parse(0, input_program);
+
         if (pr)
         {
+            linenoiseHistoryAdd(input_program);       /* Add to the history. */
+            linenoiseHistorySave("repl-history.txt"); /* Save the history on disk. */
             if (argc == 2 && (strcmp(argv[1], "-dq") == 0 || strcmp(argv[1], "--display-program-queue") == 0))
             {
                 printf("Program queue: ");
                 pq_display(pr->pq);
             }
-            ps_instance_ptr result_stack = purr(ps_init(), pr->pq, wd);
+            stack = purr(stack, pr->pq, wd);
             // printf("Stack (result):\n");
-            ps_display(result_stack);
+            ps_display(stack);
         }
         else
         {
-            printf("failed to parse [%s]", input_program);
+            printf("failed to parse!");
             return 1;
         }
+        free(input_program);
     }
 }
