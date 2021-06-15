@@ -359,6 +359,28 @@ pq_node_ptr pf_intAdd(ps_instance_ptr s)
     }
     return NULL;
 };
+pq_node_ptr pf_intMult(ps_instance_ptr s)
+{
+    // ps_display(s);
+    pq_node_ptr a = ps_pop(s);
+    if (a && a->type == 'i')
+    {
+        pq_node_ptr b = ps_pop(s);
+        if (b && b->type == 'i')
+        {
+            return make_integer_node(b->data->w.i * a->data->w.i);
+        }
+        else
+        {
+            printf("intMult expected top-1 to be integer, but got type %c instead\n", a->type);
+        }
+    }
+    else
+    {
+        printf("intMult expected top to be integer, but got type %c instead\n", a->type);
+    }
+    return NULL;
+};
 
 pq_node_ptr pf_swap(ps_instance_ptr s)
 {
@@ -519,6 +541,7 @@ dictionary *init_core_word_dictionary()
     dictionary_set(wd, "twice", make_list_node("dup +"));
     dictionary_set(wd, "strAppend", make_fun_node(pf_strAppend));
     dictionary_set(wd, "+", make_fun_node(pf_intAdd));
+    dictionary_set(wd, "*", make_fun_node(pf_intMult));
     dictionary_set(wd, "swap", make_fun_node(pf_swap));
     dictionary_set(wd, "drop", make_fun_node(pf_drop));
     dictionary_set(wd, "size", make_fun_node(pf_size));
