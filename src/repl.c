@@ -88,4 +88,7 @@ int main(int argc, char **argv)
         }
         free(input_program);
     }
+    ps_clear(stack);
+    free(stack);
+    dictionary_del(wd);
 }

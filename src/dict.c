@@ -190,7 +190,9 @@ void dictionary_del(dictionary *d)
         if (d->key[i] != NULL)
             free(d->key[i]);
         if (d->val[i] != NULL)
-            free(d->val[i]);
+            pq_free_node(d->val[i]);
+
+            // free(d->val[i]);
     }
     free(d->val);
     free(d->key);
@@ -363,7 +365,9 @@ void dictionary_unset(dictionary *d, const char *key)
     d->key[i] = NULL;
     if (d->val[i] != NULL)
     {
-        free(d->val[i]);
+        //
+        // free(d->val[i]);
+        pq_free_node(d->val[i]);
         d->val[i] = NULL;
     }
     d->hash[i] = 0;

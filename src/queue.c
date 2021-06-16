@@ -53,7 +53,18 @@ pq_node_ptr pq_init_node()
 	item->data = wp;
 	item->previous = NULL;
 	return item;
-}
+};
+
+void pq_free_node(pq_node_ptr node);
+
+void pq_free_list(pq_node_ptr le) {
+	pq_node_ptr next;
+	while(le) {
+		next = le->previous;
+		pq_free_node(le);
+		le = next;
+	}
+};
 
 void pq_free_node(pq_node_ptr node)
 {
@@ -61,6 +72,15 @@ void pq_free_node(pq_node_ptr node)
 	{
 		free(node->data->w.s);
 	}
+	if (node->type == 'l')
+	{
+		pq_free_list(node->data->w.list);
+	}
+	// if (node->type == 'f')
+	// {
+	// 	free(node->data->w.fun);
+	// }
+	free(node->data);
 	free(node);
 }
 
@@ -79,10 +99,10 @@ pq_instance_ptr pq_init()
 	return new_pq;
 };
 
-bool pq_delete(pq_instance_ptr old_pq)
-{
-	return false;
-};
+// bool pq_delete(pq_instance_ptr old_pq)
+// {
+// 	return false;
+// };
 
 bool is_pq_empty(pq_instance_ptr pq)
 {

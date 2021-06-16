@@ -181,7 +181,7 @@ parser_result_ptr parse(int i, const char *pt)
             parser_result_ptr pr = parse(i, pt);
             i = pr->i;
             pq_enqueue_l(result->pq, pr->pq->front);
-            pq_delete(pr->pq);
+            free(pr->pq);
             free(pr);
         }
         else if (pt[i] == ']')
@@ -329,6 +329,8 @@ pq_node_ptr make_list_node(char *s)
     n->type = 'l';
     parser_result_ptr pr = parse(0, s);
     n->data->w.list = pr->pq->front;
+    free(pr->pq);
+    free(pr);
     return n;
 }
 pq_node_ptr make_fun_node(pq_node_ptr (*fun)(ps_instance_ptr, pq_instance_ptr))
