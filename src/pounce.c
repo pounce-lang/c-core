@@ -622,6 +622,27 @@ pq_node_ptr pf_play(ps_instance_ptr s, pq_instance_ptr p)
     return NULL;
 };
 
+pq_node_ptr pf_dip(ps_instance_ptr s, pq_instance_ptr p)
+{
+    pq_node_ptr e = ps_pop(s);
+    pq_node_ptr t = ps_pop(s);
+    if (!e || e->type != 'l')
+    {
+        printf("'dip' expected a list at the top of the stack\n");
+        return NULL;
+    }
+    pq_requeue(p, t);
+    pq_node_ptr l = e->data->w.list;
+    pq_node_ptr rev = reverse_copy(l);
+    while (rev)
+    {
+        l = rev->previous;
+        pq_requeue(p, rev);
+        rev = l;
+    }
+    return NULL;
+};
+
 dictionary *init_core_word_dictionary()
 {
     dictionary *wd = dictionary_new(10);
@@ -636,6 +657,7 @@ dictionary *init_core_word_dictionary()
     dictionary_set(wd, "cons", make_fun_node(pf_cons));
     dictionary_set(wd, "uncons", make_fun_node(pf_uncons));
     dictionary_set(wd, "play", make_fun_node(pf_play));
+    dictionary_set(wd, "dip", make_fun_node(pf_dip));
     return wd;
 }
 
