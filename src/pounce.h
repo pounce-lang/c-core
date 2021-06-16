@@ -19,7 +19,7 @@ typedef struct word_struct
 
 typedef struct pq_node
 {
-	char type; // (s)tring, (i)nt, (l)ist, (f)unction (d)ouble presision float
+	char type; // (s)tring, (i)nt (long), (l)ist, (f)unction (d)ouble presision float
 	word_ptr data;
 	struct pq_node *previous;
 

@@ -72,25 +72,23 @@ typedef struct parser_result
 } * parser_result_ptr;
 pq_node_ptr dup_node(pq_node_ptr e);
 
-bool strToInt(long *val, char *s)
+// returns 'i' for int, 'f' for float and 's' for string (NaN) 
+char strToNumber(long *ival, double *fval, char *s)
 {
-    // printf("*** try convet %s", s);
-    long value = atol(s);
-    // printf(" got %d\n", value);
-    if (value == 0)
+    char *extra;
+    double float_value = strtod(s, &extra);
+    if (*extra)
     {
-        if (strcmp(s, "0") == 0 || strcmp(s, ".0") == 0 || strcmp(s, "0.0") == 0)
-        {
-            *val = 0;
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return 's';
     }
-    *val = value;
-    return true;
+    long int_value = atol(s);
+    if (float_value == (double)int_value && !strchr(s, '.'))
+    {
+        *ival = int_value;
+        return 'i';
+    }
+    *fval = float_value;
+    return 'f';
 }
 
 int save_word(int word_i, char *word, parser_result_ptr result)
@@ -99,9 +97,15 @@ int save_word(int word_i, char *word, parser_result_ptr result)
     {
         word[word_i] = 0;
         long intVal;
-        if (strToInt(&intVal, word))
+        double floatVal;
+        char kind = strToNumber(&intVal, &floatVal, word);
+        if (kind == 'i')
         {
             pq_enqueue_i(result->pq, intVal);
+        }
+        else if (kind == 'f')
+        {
+            pq_enqueue_d(result->pq, floatVal);
         }
         else
         {
@@ -230,6 +234,10 @@ ps_instance_ptr purr(ps_instance_ptr s, pq_instance_ptr p, dictionary *d)
                 {
                     ps_push_i(s, w_def->data->w.i);
                 }
+                else if (w_def->type == 'd')
+                {
+                    ps_push_d(s, w_def->data->w.d);
+                }
                 else if (w_def->type == 'l')
                 {
                     ps_push_l(s, dup_node(w_def)->data->w.list);
@@ -249,6 +257,10 @@ ps_instance_ptr purr(ps_instance_ptr s, pq_instance_ptr p, dictionary *d)
                     else if (res->type == 'i')
                     {
                         ps_push_i(s, res->data->w.i);
+                    }
+                    else if (res->type == 'd')
+                    {
+                        ps_push_d(s, res->data->w.d);
                     }
                     else if (res->type == 'l')
                     {
@@ -274,6 +286,10 @@ ps_instance_ptr purr(ps_instance_ptr s, pq_instance_ptr p, dictionary *d)
                 {
                     ps_push_i(s, w->data->w.i);
                 }
+                else if (w->type == 'd')
+                {
+                    ps_push_d(s, w->data->w.d);
+                }
                 else if (w->type == 'l')
                 {
                     ps_push_l(s, w->data->w.list);
@@ -287,6 +303,10 @@ ps_instance_ptr purr(ps_instance_ptr s, pq_instance_ptr p, dictionary *d)
         else if (w && w->type == 'i')
         {
             ps_push_i(s, w->data->w.i);
+        }
+        else if (w && w->type == 'd')
+        {
+            ps_push_d(s, w->data->w.d);
         }
         else if (w && w->type == 'l')
         {
@@ -325,6 +345,13 @@ pq_node_ptr make_integer_node(long i)
     n->data->w.i = i;
     return n;
 }
+pq_node_ptr make_double_node(double d)
+{
+    pq_node_ptr n = pq_init_node();
+    n->type = 'd';
+    n->data->w.d = d;
+    return n;
+}
 
 pq_node_ptr pf_strAppend(ps_instance_ptr s, pq_instance_ptr p)
 {
@@ -346,7 +373,7 @@ pq_node_ptr pf_strAppend(ps_instance_ptr s, pq_instance_ptr p)
             strcat(result, a->data->w.s);
             pq_free_node(a);
             pq_free_node(b);
-            
+
             return make_string_node(result);
         }
         else
@@ -365,12 +392,19 @@ pq_node_ptr pf_intAdd(ps_instance_ptr s, pq_instance_ptr p)
 {
     // ps_display(s);
     pq_node_ptr a = ps_pop(s);
-    if (a && a->type == 'i')
+    if (a && (a->type == 'i' || a->type == 'd'))
     {
         pq_node_ptr b = ps_pop(s);
-        if (b && b->type == 'i')
+        if (b && (b->type == 'i' || b->type == 'd'))
         {
-            return make_integer_node(b->data->w.i + a->data->w.i);
+            if (a->type == 'i' && b->type == 'i')
+                return make_integer_node(b->data->w.i + a->data->w.i);
+            else if (a->type == 'd' && b->type == 'd')
+                return make_double_node(b->data->w.d + a->data->w.d);
+            else
+            {
+                printf("intAdd both args to be integer or both to be floating point, but got a mix\n");
+            }
         }
         else
         {
@@ -387,12 +421,19 @@ pq_node_ptr pf_intMult(ps_instance_ptr s, pq_instance_ptr p)
 {
     // ps_display(s);
     pq_node_ptr a = ps_pop(s);
-    if (a && a->type == 'i')
+    if (a && (a->type == 'i' || a->type == 'd'))
     {
         pq_node_ptr b = ps_pop(s);
-        if (b && b->type == 'i')
+        if (b && (b->type == 'i' || b->type == 'd'))
         {
-            return make_integer_node(b->data->w.i * a->data->w.i);
+            if (a->type == 'i' && b->type == 'i')
+                return make_integer_node(b->data->w.i * a->data->w.i);
+            else if (a->type == 'd' && b->type == 'd')
+                return make_double_node(b->data->w.d * a->data->w.d);
+            else
+            {
+                printf("intMult both args to be integer or both to be floating point, but got a mix\n");
+            }
         }
         else
         {
@@ -466,6 +507,8 @@ pq_node_ptr dup_node(pq_node_ptr e)
         return make_string_node(e->data->w.s);
     if (e->type == 'i')
         return make_integer_node(e->data->w.i);
+    if (e->type == 'd')
+        return make_double_node(e->data->w.d);
     if (e->type == 'l')
     {
         pq_node_ptr l = e->data->w.list;
@@ -546,7 +589,8 @@ pq_node_ptr pf_uncons(ps_instance_ptr s, pq_instance_ptr p)
     return NULL;
 };
 
-pq_node_ptr reverse_copy(pq_node_ptr l) {
+pq_node_ptr reverse_copy(pq_node_ptr l)
+{
     pq_node_ptr rev;
     pq_node_ptr link = NULL;
     while (l)
@@ -569,7 +613,8 @@ pq_node_ptr pf_play(ps_instance_ptr s, pq_instance_ptr p)
     }
     pq_node_ptr l = e->data->w.list;
     pq_node_ptr rev = reverse_copy(l);
-    while(rev) {
+    while (rev)
+    {
         l = rev->previous;
         pq_requeue(p, rev);
         rev = l;

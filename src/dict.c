@@ -401,6 +401,10 @@ void pq_display_word(pq_node_ptr node)
     {
         printf(" %d ", node->data->w.i);
     }
+    else if (node->type == 'd')
+    {
+        printf(" %f ", node->data->w.d);
+    }
     else if (node->type == 'l')
     {
         pq_attendance(node->data->w.list, "");

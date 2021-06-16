@@ -131,6 +131,22 @@ bool ps_push_i(ps_instance_ptr ps, long value)
 	return true;
 }
 
+bool ps_push_d(ps_instance_ptr ps, double value)
+{
+	pq_node_ptr item = ps_init_node();
+	item->data->w.d = value;
+	item->type = 'd';
+
+	if (ps->top == NULL)
+		ps->top = item;
+	else
+	{
+		item->previous = ps->top;
+		ps->top = item;
+	}
+	return true;
+}
+
 pq_node_ptr ps_pop(ps_instance_ptr ps)
 {
 
