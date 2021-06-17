@@ -33,10 +33,10 @@ int main(int argc, char **argv)
         dictionary_dump(wd);
     }
     // possibly run pounce via file io
-    if (argc >= 3)
+    if (argc >= 2)
     {
         const char *input_fn = argv[1];
-        const char *output_fn = argv[2];
+        // const char *output_fn = argv[2];
 
         FILE *program_source = fopen(input_fn, "r");
         if (!program_source)
@@ -44,13 +44,29 @@ int main(int argc, char **argv)
             fprintf(stderr, "Error: %s is unable to open file %s\n", argv[0], argv[1]);
             return 1;
         }
-
-        FILE *result_stack_out = fopen(input_fn, "w");
-        if (!result_stack_out)
+        char pp[1024];
+        fgets(pp, 1024, program_source);
+        fclose(program_source);
+        // FILE *result_stack_out = fopen(input_fn, "w");
+        // if (!result_stack_out)
+        // {
+        //     fprintf(stderr, "Error: %s is unable to open file %s\n", argv[0], argv[2]);
+        //     return 1;
+        // }
+        ps_instance_ptr stack = ps_init();
+        parser_result_ptr pr = parse(0, pp);
+        if (pr)
         {
-            fprintf(stderr, "Error: %s is unable to open file %s\n", argv[0], argv[2]);
-            return 1;
+            stack = purr(stack, pr->pq, wd);
         }
+        ps_display(stack);
+
+        free(pr->pq);
+        free(pr);
+        ps_clear(stack);
+        free(stack);
+        dictionary_del(wd);
+        return 0;
     }
     // otherwise terminal i/o
 

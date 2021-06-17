@@ -5,34 +5,6 @@
 #include "pounce.h"
 
 
-// static char *xstrcp(const char *s)
-// {
-// 	char *t;
-// 	size_t len;
-// 	if (!s)
-// 		return NULL;
-
-// 	len = strlen(s) + 1;
-// 	t = (char *)malloc(len);
-// 	if (t)
-// 	{
-// 		memcpy(t, s, len);
-// 	}
-// 	return t;
-// }
-
-// word_ptr word_init()
-// {
-// 	word_ptr new_word = (word_ptr)malloc(sizeof(struct word_struct));
-
-// 	if (new_word == NULL)
-// 	{
-// 		printf("could not malloc word_struct union\n");
-// 		return NULL;
-// 	}
-// 	// printf("returning new word %d\n", &new_word);
-// 	return new_word;
-// };
 pq_node_ptr ps_init_node() {
 	pq_node_ptr item = (pq_node_ptr)malloc(sizeof(struct pq_node));
 	if (item == NULL)
@@ -47,16 +19,6 @@ pq_node_ptr ps_init_node() {
 	item->data = wp;
 	item->previous = NULL;
 	return item;
-}
-
-void ps_free_node(pq_node_ptr node)
-{
-	if (node->type == 's')
-	{
-		free(node->data->w.s);
-	}
-	free(node->data);
-	free(node);
 }
 
 ps_instance_ptr ps_init()
@@ -169,7 +131,7 @@ pq_node_ptr ps_pop(ps_instance_ptr ps)
 	}
 	pq_node_ptr ret_val = ps->top;
 	ps->top = ps->top->previous;
-
+	ret_val->previous = NULL;
 	return ret_val;
 }
 
@@ -188,7 +150,7 @@ bool ps_clear(ps_instance_ptr ps)
 	while (current != NULL)
 	{
 		previous = current->previous;
-        ps_free_node(current);
+        pq_free_node(current);
 		current = previous;
 	}
 	ps->top = NULL;

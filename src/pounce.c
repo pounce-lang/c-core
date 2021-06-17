@@ -285,17 +285,9 @@ ps_instance_ptr purr(ps_instance_ptr s, pq_instance_ptr p, dictionary *d)
                 ps_push_node(s, w);
             }
         }
-        else if (w && w->type == 'i')
+        else 
         {
-            ps_push_node(s, w); //->data->w.i);
-        }
-        else if (w && w->type == 'd')
-        {
-            ps_push_d(s, w->data->w.d);
-        }
-        else if (w && w->type == 'l')
-        {
-            ps_push_l(s, w->data->w.list);
+            ps_push_node(s, w);
         }
     }
     return s;
@@ -624,13 +616,13 @@ pq_node_ptr reverse_copy(pq_node_ptr l)
 
 pq_node_ptr pf_play(ps_instance_ptr s, pq_instance_ptr p)
 {
-    pq_node_ptr e = ps_pop(s);
-    if (!e || e->type != 'l')
+    pq_node_ptr phrase = ps_pop(s);
+    if (!phrase || phrase->type != 'l')
     {
         printf("'play' expected a list at the top of the stack\n");
         return NULL;
     }
-    pq_node_ptr l = e->data->w.list;
+    pq_node_ptr l = phrase->data->w.list;
     pq_node_ptr rev = reverse_copy(l);
     while (rev)
     {
@@ -638,6 +630,8 @@ pq_node_ptr pf_play(ps_instance_ptr s, pq_instance_ptr p)
         pq_requeue(p, rev);
         rev = l;
     }
+    free(phrase->data);
+    free(phrase);
     return NULL;
 };
 

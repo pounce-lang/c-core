@@ -18,3 +18,6 @@
 `./dist/tests`
 
 Running this may take a few seconds since it does a simple stress test.
+
+## valgrind check
+`valgrind --leak-check=yes ./dist/repl`
