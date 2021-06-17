@@ -80,6 +80,9 @@ int main(int argc, char **argv)
             stack = purr(stack, pr->pq, wd);
             // printf("Stack (result):\n");
             ps_display(stack);
+
+            free(pr->pq);
+            free(pr);
         }
         else
         {

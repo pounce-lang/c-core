@@ -55,6 +55,7 @@ void ps_free_node(pq_node_ptr node)
 	{
 		free(node->data->w.s);
 	}
+	free(node->data);
 	free(node);
 }
 
@@ -111,6 +112,18 @@ bool ps_push_s(ps_instance_ptr ps, char *value)
 	{
 		item->previous = ps->top;
 		ps->top = item;
+	}
+	return true;
+}
+
+bool ps_push_node(ps_instance_ptr ps, pq_node_ptr n)
+{
+	if (ps->top == NULL)
+		ps->top = n;
+	else
+	{
+		n->previous = ps->top;
+		ps->top = n;
 	}
 	return true;
 }

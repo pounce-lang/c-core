@@ -245,7 +245,7 @@ pq_node_ptr pq_dequeue(pq_instance_ptr pq)
 		pq->rear = NULL;
 	}
 	pq->front = pq->front->previous;
-
+	ret_val->previous = NULL;
 	return ret_val;
 }
 

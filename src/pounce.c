@@ -8,7 +8,6 @@
 
 pq_node_ptr pf_play(ps_instance_ptr s, pq_instance_ptr p);
 
-
 void ps_display(ps_instance_ptr ps)
 {
     if (is_ps_empty(ps))
@@ -72,7 +71,7 @@ typedef struct parser_result
 } * parser_result_ptr;
 pq_node_ptr dup_node(pq_node_ptr e);
 
-// returns 'i' for int, 'f' for float and 's' for string (NaN) 
+// returns 'i' for int, 'f' for float and 's' for string (NaN)
 char strToNumber(long *ival, double *fval, char *s)
 {
     char *extra;
@@ -107,9 +106,13 @@ int save_word(int word_i, char *word, parser_result_ptr result)
         {
             pq_enqueue_d(result->pq, floatVal);
         }
-        else
+        else if (kind == 's')
         {
             pq_enqueue_s(result->pq, word);
+        }
+        else
+        {
+            printf("save_word got bad value from strToNumber");
         }
         word[0] = 0;
         word_i = 0;
@@ -226,6 +229,7 @@ ps_instance_ptr purr(ps_instance_ptr s, pq_instance_ptr p, dictionary *d)
             pq_node_ptr w_def = dictionary_get(d, w->data->w.s, NULL);
             if (w_def)
             {
+                pq_free_node(w);
                 if (w_def->type == 's')
                 {
                     ps_push_s(s, w_def->data->w.s);
@@ -252,15 +256,15 @@ ps_instance_ptr purr(ps_instance_ptr s, pq_instance_ptr p, dictionary *d)
                     }
                     else if (res->type == 's')
                     {
-                        ps_push_s(s, res->data->w.s);
+                        ps_push_node(s, res);
                     }
                     else if (res->type == 'i')
                     {
-                        ps_push_i(s, res->data->w.i);
+                        ps_push_node(s, res);
                     }
                     else if (res->type == 'd')
                     {
-                        ps_push_d(s, res->data->w.d);
+                        ps_push_node(s, res);
                     }
                     else if (res->type == 'l')
                     {
@@ -278,31 +282,12 @@ ps_instance_ptr purr(ps_instance_ptr s, pq_instance_ptr p, dictionary *d)
             }
             else
             {
-                if (w->type == 's')
-                {
-                    ps_push_s(s, w->data->w.s);
-                }
-                else if (w->type == 'i')
-                {
-                    ps_push_i(s, w->data->w.i);
-                }
-                else if (w->type == 'd')
-                {
-                    ps_push_d(s, w->data->w.d);
-                }
-                else if (w->type == 'l')
-                {
-                    ps_push_l(s, w->data->w.list);
-                }
-                else
-                {
-                    printf("word from pq is not handled\n");
-                }
+                ps_push_node(s, w);
             }
         }
         else if (w && w->type == 'i')
         {
-            ps_push_i(s, w->data->w.i);
+            ps_push_node(s, w); //->data->w.i);
         }
         else if (w && w->type == 'd')
         {
@@ -370,23 +355,26 @@ pq_node_ptr pf_strAppend(ps_instance_ptr s, pq_instance_ptr p)
             result = (char *)malloc(len);
             if (result)
             {
-                memcpy(result, b->data->w.s, strlen(b->data->w.s) + 1);
+                strcpy(result, b->data->w.s);
             }
             strcat(result, a->data->w.s);
             pq_free_node(a);
             pq_free_node(b);
-
-            return make_string_node(result);
+            pq_node_ptr n = make_string_node(result);
+            free(result);
+            return n;
         }
         else
         {
             fprintf(stderr, "strAppend encountered a non string at top(-1) of stack\n");
         }
+        pq_free_node(b);
     }
     else
     {
         fprintf(stderr, "strAppend encountered a non string at top of stack\n");
     }
+    pq_free_node(a);
     return NULL;
 };
 
@@ -400,9 +388,19 @@ pq_node_ptr pf_intAdd(ps_instance_ptr s, pq_instance_ptr p)
         if (b && (b->type == 'i' || b->type == 'd'))
         {
             if (a->type == 'i' && b->type == 'i')
-                return make_integer_node(b->data->w.i + a->data->w.i);
+            {
+                long sum = b->data->w.i + a->data->w.i;
+                pq_free_node(a);
+                pq_free_node(b);
+                return make_integer_node(sum);
+            }
             else if (a->type == 'd' && b->type == 'd')
-                return make_double_node(b->data->w.d + a->data->w.d);
+            {
+                double sum = b->data->w.i + a->data->w.i;
+                pq_free_node(a);
+                pq_free_node(b);
+                return make_double_node(sum);
+            }
             else
             {
                 printf("intAdd both args to be integer or both to be floating point, but got a mix\n");
@@ -412,11 +410,13 @@ pq_node_ptr pf_intAdd(ps_instance_ptr s, pq_instance_ptr p)
         {
             printf("intAdd expected top(-1) to be integer, but got type %c instead\n", a->type);
         }
+        pq_free_node(b);
     }
     else
     {
         printf("intAdd expected top to be integer, but got type %c instead\n", a->type);
     }
+    pq_free_node(a);
     return NULL;
 };
 pq_node_ptr pf_intMult(ps_instance_ptr s, pq_instance_ptr p)
@@ -429,9 +429,19 @@ pq_node_ptr pf_intMult(ps_instance_ptr s, pq_instance_ptr p)
         if (b && (b->type == 'i' || b->type == 'd'))
         {
             if (a->type == 'i' && b->type == 'i')
-                return make_integer_node(b->data->w.i * a->data->w.i);
+            {
+                long prod = b->data->w.i * a->data->w.i;
+                pq_free_node(a);
+                pq_free_node(b);
+                return make_integer_node(prod);
+            }
             else if (a->type == 'd' && b->type == 'd')
-                return make_double_node(b->data->w.d * a->data->w.d);
+            {
+                double prod = b->data->w.i * a->data->w.i;
+                pq_free_node(a);
+                pq_free_node(b);
+                return make_double_node(prod);
+            }
             else
             {
                 printf("intMult both args to be integer or both to be floating point, but got a mix\n");
@@ -441,11 +451,13 @@ pq_node_ptr pf_intMult(ps_instance_ptr s, pq_instance_ptr p)
         {
             printf("intMult expected top(-1) to be integer, but got type %c instead\n", a->type);
         }
+        pq_free_node(b);
     }
     else
     {
         printf("intMult expected top to be integer, but got type %c instead\n", a->type);
     }
+    pq_free_node(a);
     return NULL;
 };
 
@@ -475,9 +487,14 @@ pq_node_ptr pf_swap(ps_instance_ptr s, pq_instance_ptr p)
 
 pq_node_ptr pf_drop(ps_instance_ptr s, pq_instance_ptr p)
 {
-    if (!ps_pop(s))
+    pq_node_ptr ele = ps_pop(s);
+    if (!ele)
     {
         printf("'drop' expected an element at the top of the stack, but it was empty\n");
+    }
+    else
+    {
+        pq_free_node(ele);
     }
     return NULL;
 };
