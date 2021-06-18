@@ -15,6 +15,7 @@ int main(int argc, char **argv)
     {
         printf("Help:\n -u --usage prints command line arguments to %s\n", argv[0]);
         printf(" -h --help prints this message\n");
+        printf(" -i --input <inputfile>\n");        
         printf(" -v --version prints the current repl version\n");
         printf(" -dd --display-dictionary prints the core word dictionary\n");
         printf(" -dq --display-program-queue prints the program queue before each run\n");
@@ -33,9 +34,9 @@ int main(int argc, char **argv)
         dictionary_dump(wd);
     }
     // possibly run pounce via file io
-    if (argc >= 2)
+    if (argc >= 3  && (strcmp(argv[1], "-i") == 0 || strcmp(argv[1], "--input") == 0))
     {
-        const char *input_fn = argv[1];
+        const char *input_fn = argv[2];
         // const char *output_fn = argv[2];
 
         FILE *program_source = fopen(input_fn, "r");

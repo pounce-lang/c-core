@@ -630,8 +630,7 @@ pq_node_ptr pf_play(ps_instance_ptr s, pq_instance_ptr p)
         pq_requeue(p, rev);
         rev = l;
     }
-    free(phrase->data);
-    free(phrase);
+    pq_free_node(phrase);
     return NULL;
 };
 
@@ -653,6 +652,7 @@ pq_node_ptr pf_dip(ps_instance_ptr s, pq_instance_ptr p)
         pq_requeue(p, rev);
         rev = l;
     }
+    pq_free_node(e);
     return NULL;
 };
 
