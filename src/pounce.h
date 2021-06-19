@@ -12,6 +12,7 @@ typedef struct word_struct
 {
 	union
 	{
+		bool b;
 		char *s;
 		long i;
 		double d;
@@ -22,7 +23,7 @@ typedef struct word_struct
 
 typedef struct pq_node
 {
-	char type; // (s)tring, (i)nt (long), (l)ist, (f)unction (d)ouble presision float
+	char type; // (b)oolean, (s)tring, (i)nt (long), (l)ist, (f)unction (d)ouble presision float
 	word_ptr data;
 	struct pq_node *previous;
 

@@ -171,6 +171,25 @@ bool pq_enqueue_l(pq_instance_ptr pq, pq_node_ptr value)
 	return true;
 };
 
+bool pq_enqueue_b(pq_instance_ptr pq, bool value)
+{
+	pq_node_ptr item = pq_init_node();
+	if (!item)
+	{
+		return false;
+	}
+	item->data->w.b = value;
+	item->type = 'b';
+
+	if (pq->rear == NULL)
+		pq->front = pq->rear = item;
+	else
+	{
+		pq->rear->previous = item;
+		pq->rear = item;
+	}
+	return true;
+};
 bool pq_enqueue_i(pq_instance_ptr pq, long value)
 {
 	pq_node_ptr item = pq_init_node();

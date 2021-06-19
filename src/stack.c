@@ -90,6 +90,22 @@ bool ps_push_node(ps_instance_ptr ps, pq_node_ptr n)
 	return true;
 }
 
+bool ps_push_b(ps_instance_ptr ps, bool value)
+{
+	pq_node_ptr item = ps_init_node();
+	item->data->w.b = value;
+	item->type = 'b';
+
+	if (ps->top == NULL)
+		ps->top = item;
+	else
+	{
+		item->previous = ps->top;
+		ps->top = item;
+	}
+	return true;
+}
+
 bool ps_push_i(ps_instance_ptr ps, long value)
 {
 	pq_node_ptr item = ps_init_node();

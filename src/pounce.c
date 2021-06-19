@@ -78,6 +78,14 @@ char strToNumber(long *ival, double *fval, char *s)
     double float_value = strtod(s, &extra);
     if (*extra)
     {
+        if (strcmp(extra, "true") == 0) {
+            *ival = 1;
+            return 'b';
+        }
+        if (strcmp(extra, "false") == 0) {
+            *ival = 0;
+            return 'b';
+        }
         return 's';
     }
     long int_value = atol(s);
@@ -101,6 +109,10 @@ int save_word(int word_i, char *word, parser_result_ptr result)
         if (kind == 'i')
         {
             pq_enqueue_i(result->pq, intVal);
+        }
+        else if (kind == 'b')
+        {
+            pq_enqueue_b(result->pq, (bool)intVal);
         }
         else if (kind == 'f')
         {
@@ -235,6 +247,10 @@ ps_instance_ptr purr(ps_instance_ptr s, pq_instance_ptr p, dictionary *d)
                 {
                     ps_push_s(s, w_def->data->w.s);
                 }
+                else if (w_def->type == 'b')
+                {
+                    ps_push_b(s, w_def->data->w.b);
+                }
                 else if (w_def->type == 'i')
                 {
                     ps_push_i(s, w_def->data->w.i);
@@ -255,15 +271,7 @@ ps_instance_ptr purr(ps_instance_ptr s, pq_instance_ptr p, dictionary *d)
                     {
                         // OK NULL means nothing to add to the stack
                     }
-                    else if (type_s(res))
-                    {
-                        ps_push_node(s, res);
-                    }
-                    else if (res->type == 'i')
-                    {
-                        ps_push_node(s, res);
-                    }
-                    else if (res->type == 'd')
+                    else if (res->type != 'l')
                     {
                         ps_push_node(s, res);
                     }
@@ -316,6 +324,13 @@ pq_node_ptr make_fun_node(pq_node_ptr (*fun)(ps_instance_ptr, pq_instance_ptr))
     pq_node_ptr n = pq_init_node();
     n->type = 'f';
     n->data->w.fun = fun;
+    return n;
+}
+pq_node_ptr make_boolean_node(bool b)
+{
+    pq_node_ptr n = pq_init_node();
+    n->type = 'b';
+    n->data->w.b = b;
     return n;
 }
 pq_node_ptr make_integer_node(long i)
@@ -375,6 +390,60 @@ pq_node_ptr pf_strAppend(ps_instance_ptr s, pq_instance_ptr p)
     return NULL;
 };
 
+pq_node_ptr pf_boolOr(ps_instance_ptr s, pq_instance_ptr p)
+{
+    // ps_display(s);
+    pq_node_ptr a = ps_pop(s);
+    if (a && a->type == 'b')
+    {
+        pq_node_ptr b = ps_pop(s);
+        if (b && b->type == 'b')
+        {
+            long result = b->data->w.b || a->data->w.b;
+            pq_free_node(a);
+            pq_free_node(b);
+            return make_boolean_node(result);
+        }
+        else
+        {
+            printf("'||' expected top(-1) to be boolean, but got type %c instead\n", b->type);
+        }
+        pq_free_node(b);
+    }
+    else
+    {
+        printf("intAdd expected top to be integer, but got type %c instead\n", a->type);
+    }
+    pq_free_node(a);
+    return NULL;
+};
+pq_node_ptr pf_boolAnd(ps_instance_ptr s, pq_instance_ptr p)
+{
+    // ps_display(s);
+    pq_node_ptr a = ps_pop(s);
+    if (a && a->type == 'b')
+    {
+        pq_node_ptr b = ps_pop(s);
+        if (b && b->type == 'b')
+        {
+            long result = b->data->w.b && a->data->w.b;
+            pq_free_node(a);
+            pq_free_node(b);
+            return make_boolean_node(result);
+        }
+        else
+        {
+            printf("'||' expected top(-1) to be boolean, but got type %c instead\n", b->type);
+        }
+        pq_free_node(b);
+    }
+    else
+    {
+        printf("intAdd expected top to be integer, but got type %c instead\n", a->type);
+    }
+    pq_free_node(a);
+    return NULL;
+};
 pq_node_ptr pf_intAdd(ps_instance_ptr s, pq_instance_ptr p)
 {
     // ps_display(s);
@@ -405,7 +474,7 @@ pq_node_ptr pf_intAdd(ps_instance_ptr s, pq_instance_ptr p)
         }
         else
         {
-            printf("intAdd expected top(-1) to be integer, but got type %c instead\n", a->type);
+            printf("intAdd expected top(-1) to be integer, but got type %c instead\n", b->type);
         }
         pq_free_node(b);
     }
@@ -446,7 +515,7 @@ pq_node_ptr pf_intMult(ps_instance_ptr s, pq_instance_ptr p)
         }
         else
         {
-            printf("intMult expected top(-1) to be integer, but got type %c instead\n", a->type);
+            printf("intMult expected top(-1) to be integer, but got type %c instead\n", b->type);
         }
         pq_free_node(b);
     }
@@ -523,6 +592,8 @@ pq_node_ptr dup_node(pq_node_ptr e)
         return make_string_node(e->type, e->data->w.s);
     if (e->type == 'i')
         return make_integer_node(e->data->w.i);
+    if (e->type == 'b')
+        return make_boolean_node(e->data->w.i);
     if (e->type == 'd')
         return make_double_node(e->data->w.d);
     if (e->type == 'l')
@@ -548,6 +619,8 @@ pq_node_ptr dup_node(pq_node_ptr e)
         return new_l;
     }
 }
+
+// pounce (internal word) function
 pq_node_ptr pf_dup(ps_instance_ptr s, pq_instance_ptr p)
 {
     pq_node_ptr e = s->top;
@@ -665,9 +738,12 @@ dictionary *init_core_word_dictionary()
 {
     dictionary *wd = dictionary_new(10);
     dictionary_set(wd, "twice", make_list_node("dup +"));
+    dictionary_set(wd, "dup2", make_list_node("[dup] dip dup [swap] dip"));
     dictionary_set(wd, "strAppend", make_fun_node(pf_strAppend));
     dictionary_set(wd, "+", make_fun_node(pf_intAdd));
     dictionary_set(wd, "*", make_fun_node(pf_intMult));
+    dictionary_set(wd, "||", make_fun_node(pf_boolOr));
+    dictionary_set(wd, "&&", make_fun_node(pf_boolAnd));
     dictionary_set(wd, "swap", make_fun_node(pf_swap));
     dictionary_set(wd, "drop", make_fun_node(pf_drop));
     dictionary_set(wd, "size", make_fun_node(pf_size));

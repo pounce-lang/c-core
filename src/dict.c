@@ -406,6 +406,10 @@ void pq_display_word(pq_node_ptr node)
             printf(" %c%s%c ", node->type, node->data->w.s, node->type);
         }
     }
+    else if (node->type == 'b')
+    {
+        printf(" %s ", node->data->w.b ? "true": "false");
+    }
     else if (node->type == 'i')
     {
         printf(" %d ", node->data->w.i);
