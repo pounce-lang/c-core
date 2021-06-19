@@ -14,7 +14,7 @@
                                 Includes
  ---------------------------------------------------------------------------*/
 #include "dict.h"
-
+#include "pounce.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -397,9 +397,14 @@ void pq_attendance(pq_node_ptr temp, char *sep)
 
 void pq_display_word(pq_node_ptr node)
 {
-    if (node->type == 's')
+    if (type_s(node))
     {
-        printf(" %s ", node->data->w.s);
+        if (node->type == 's') {
+            printf(" %s ", node->data->w.s);
+        }
+        else {
+            printf(" %c%s%c ", node->type, node->data->w.s, node->type);
+        }
     }
     else if (node->type == 'i')
     {

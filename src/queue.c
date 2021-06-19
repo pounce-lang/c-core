@@ -68,7 +68,7 @@ void pq_free_list(pq_node_ptr le) {
 
 void pq_free_node(pq_node_ptr node)
 {
-	if (node->type == 's')
+	if (type_s(node))
 	{
 		free(node->data->w.s);
 	}
@@ -211,7 +211,7 @@ bool pq_enqueue_d(pq_instance_ptr pq, double value)
 	return true;
 };
 
-bool pq_enqueue_s(pq_instance_ptr pq, char *value)
+bool pq_enqueue_s(pq_instance_ptr pq, char t, char *value)
 {
 	pq_node_ptr item = pq_init_node();
 	if (!item)
@@ -219,7 +219,7 @@ bool pq_enqueue_s(pq_instance_ptr pq, char *value)
 		return false;
 	}
 	item->data->w.s = xstrcp(value);
-	item->type = 's';
+	item->type = t;
 
 	if (pq->rear == NULL)
 		pq->front = pq->rear = item;

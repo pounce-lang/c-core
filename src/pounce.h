@@ -5,6 +5,9 @@
 extern "C" {
 #endif
 
+// MACRO to test for a string type node
+#define type_s(n) (n->type == 's' || n->type == '\'' || n->type == '"' || n->type == '`')
+
 typedef struct word_struct
 {
 	union

@@ -19,7 +19,7 @@ int main()
     ps_push_s(ps, "test0");
     ps_push_s(ps, "test");
     temp_value = ps_pop(ps);
-    if (temp_value->type == 's' && strcmp(temp_value->data->w.s, "test"))
+    if (type_s(temp_value) && strcmp(temp_value->data->w.s, "test"))
     {
         all_passing = false;
         printf("Assertion #1 found an unexpected value was ps_pop'ed\n");
@@ -51,7 +51,7 @@ int main()
     ps_push_s(ps, "test-b");
     ps_push_s(ps, "test-c");
     temp_value = ps_pop(ps);
-    if (temp_value->type == 's' && strcmp(temp_value->data->w.s, "test-c"))
+    if (type_s(temp_value) && strcmp(temp_value->data->w.s, "test-c"))
     {
         all_passing = false;
         printf("Assertion #4.1 found [%d] an unexpected value was ps_pop'ed\n", temp_value);
@@ -59,7 +59,7 @@ int main()
     }
     pq_free_node(temp_value);
     temp_value = ps_pop(ps);
-    if (temp_value->type == 's' && strcmp(temp_value->data->w.s, "test-b"))
+    if (type_s(temp_value) && strcmp(temp_value->data->w.s, "test-b"))
     {
         all_passing = false;
         printf("Assertion #4.2 found [%d] an unexpected value was ps_pop'ed\n", temp_value);
@@ -69,7 +69,7 @@ int main()
     ps_push_s(ps, "test 5");
     ps_push_s(ps, "test 4");
     temp_value = ps_pop(ps);
-    if (temp_value->type == 's' && strcmp(temp_value->data->w.s, "test 4"))
+    if (type_s(temp_value) && strcmp(temp_value->data->w.s, "test 4"))
     {
         all_passing = false;
         printf("Assertion #6 found [%d] an unexpected value was ps_pop'ed\n", temp_value);
@@ -77,7 +77,7 @@ int main()
     }
     pq_free_node(temp_value);
     temp_value = ps_pop(ps);
-    if (temp_value->type == 's' && strcmp(temp_value->data->w.s, "test 5"))
+    if (type_s(temp_value) && strcmp(temp_value->data->w.s, "test 5"))
     {
         all_passing = false;
         printf("Assertion #7 found [%d] an unexpected value was ps_pop'ed\n", temp_value);

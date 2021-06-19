@@ -108,7 +108,7 @@ int save_word(int word_i, char *word, parser_result_ptr result)
         }
         else if (kind == 's')
         {
-            pq_enqueue_s(result->pq, word);
+            pq_enqueue_s(result->pq, 's', word);
         }
         else
         {
@@ -170,8 +170,9 @@ parser_result_ptr parse(int i, const char *pt)
             str[str_i++] = pt[i++];
             if (!in_string)
             {
-                str[str_i] = 0; // null terminate the string
-                pq_enqueue_s(result->pq, str);
+                str[str_i - 1] = 0; // null terminate the string r_trim
+
+                pq_enqueue_s(result->pq, str[0], &str[1]); //and l_trim
                 str[0] = 0;
                 str_i = 0;
             }
@@ -224,13 +225,13 @@ ps_instance_ptr purr(ps_instance_ptr s, pq_instance_ptr p, dictionary *d)
     {
         pq_node_ptr w = pq_dequeue(p);
         // pq_display_word(w);
-        if (w && w->type == 's')
+        if (w && type_s(w))
         {
             pq_node_ptr w_def = dictionary_get(d, w->data->w.s, NULL);
             if (w_def)
             {
                 pq_free_node(w);
-                if (w_def->type == 's')
+                if (type_s(w_def))
                 {
                     ps_push_s(s, w_def->data->w.s);
                 }
@@ -254,7 +255,7 @@ ps_instance_ptr purr(ps_instance_ptr s, pq_instance_ptr p, dictionary *d)
                     {
                         // OK NULL means nothing to add to the stack
                     }
-                    else if (res->type == 's')
+                    else if (type_s(res))
                     {
                         ps_push_node(s, res);
                     }
@@ -293,10 +294,10 @@ ps_instance_ptr purr(ps_instance_ptr s, pq_instance_ptr p, dictionary *d)
     return s;
 };
 
-pq_node_ptr make_string_node(char *s)
+pq_node_ptr make_string_node(char t, char *s)
 {
     pq_node_ptr n = pq_init_node();
-    n->type = 's';
+    n->type = t;
     n->data->w.s = xstrcp(s);
     return n;
 }
@@ -331,14 +332,18 @@ pq_node_ptr make_double_node(double d)
     n->data->w.d = d;
     return n;
 }
+char min_char(char num1, char num2) 
+{
+    return (num1 > num2 ) ? num2 : num1;
+}
 
 pq_node_ptr pf_strAppend(ps_instance_ptr s, pq_instance_ptr p)
 {
     pq_node_ptr a = ps_pop(s);
-    if (a && a->type == 's')
+    if (a && type_s(a))
     {
         pq_node_ptr b = ps_pop(s);
-        if (b && b->type == 's')
+        if (b && type_s(b))
         {
             char *result;
             size_t len;
@@ -352,7 +357,7 @@ pq_node_ptr pf_strAppend(ps_instance_ptr s, pq_instance_ptr p)
             strcat(result, a->data->w.s);
             pq_free_node(a);
             pq_free_node(b);
-            pq_node_ptr n = make_string_node(result);
+            pq_node_ptr n = make_string_node(min_char(a->type, b->type), result);
             free(result);
             return n;
         }
@@ -360,13 +365,13 @@ pq_node_ptr pf_strAppend(ps_instance_ptr s, pq_instance_ptr p)
         {
             fprintf(stderr, "strAppend encountered a non string at top(-1) of stack\n");
         }
-        pq_free_node(b);
+        if (b) pq_free_node(b);
     }
     else
     {
         fprintf(stderr, "strAppend encountered a non string at top of stack\n");
     }
-    pq_free_node(a);
+    if (a) pq_free_node(a);
     return NULL;
 };
 
@@ -514,8 +519,8 @@ pq_node_ptr dup_node(pq_node_ptr e)
 {
     if (!e)
         return NULL;
-    if (e->type == 's')
-        return make_string_node(e->data->w.s);
+    if (type_s(e))
+        return make_string_node(e->type, e->data->w.s);
     if (e->type == 'i')
         return make_integer_node(e->data->w.i);
     if (e->type == 'd')
