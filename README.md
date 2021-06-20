@@ -24,3 +24,11 @@ Running this may take a few seconds since it does a simple stress test.
 
 ## valgrind check for memory leaks
 `valgrind --leak-check=yes ./dist/repl`
+
+
+## rp-2040 pico REPL
+`cd build`
+
+`cmake ..`
+
+`make flash_led`
