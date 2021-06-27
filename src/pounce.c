@@ -736,7 +736,7 @@ pq_node_ptr pf_dip(ps_instance_ptr s, pq_instance_ptr p)
 
 dictionary *init_core_word_dictionary()
 {
-    dictionary *wd = dictionary_new(10);
+    dictionary *wd = dictionary_new(16);
     dictionary_set(wd, "twice", make_list_node("dup +"));
     dictionary_set(wd, "dup2", make_list_node("[dup] dip dup [swap] dip"));
     dictionary_set(wd, "strAppend", make_fun_node(pf_strAppend));
