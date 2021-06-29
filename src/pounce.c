@@ -370,9 +370,9 @@ pq_node_ptr pf_strAppend(ps_instance_ptr s, pq_instance_ptr p)
                 strcpy(result, b->data->w.s);
             }
             strcat(result, a->data->w.s);
+            pq_node_ptr n = make_string_node(min_char(a->type, b->type), result);
             pq_free_node(a);
             pq_free_node(b);
-            pq_node_ptr n = make_string_node(min_char(a->type, b->type), result);
             free(result);
             return n;
         }

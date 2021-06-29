@@ -27,8 +27,10 @@ Running this may take a few seconds since it does a simple stress test.
 
 
 ## rp-2040 pico REPL
-`cd build`
+`export PICO_SDK_PATH=<myRepoPath>/pico-sdk`
+
+`cd build-pico`
 
 `cmake ..`
 
-`make flash_led`
+`make pounce_repl`
