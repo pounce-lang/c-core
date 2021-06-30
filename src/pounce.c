@@ -412,7 +412,7 @@ pq_node_ptr pf_boolOr(ps_instance_ptr s, pq_instance_ptr p)
     }
     else
     {
-        printf("intAdd expected top to be integer, but got type %c instead\n", a->type);
+        printf("'||' expected top to be a Boolean, but got type %c instead\n", a->type);
     }
     pq_free_node(a);
     return NULL;
@@ -433,18 +433,35 @@ pq_node_ptr pf_boolAnd(ps_instance_ptr s, pq_instance_ptr p)
         }
         else
         {
-            printf("'||' expected top(-1) to be boolean, but got type %c instead\n", b->type);
+            printf("'&&' expected top(-1) to be Boolean, but got type %c instead\n", b->type);
         }
         pq_free_node(b);
     }
     else
     {
-        printf("intAdd expected top to be integer, but got type %c instead\n", a->type);
+        printf("'&&' expected top to be a Boolean, but got type %c instead\n", a->type);
     }
     pq_free_node(a);
     return NULL;
 };
-pq_node_ptr pf_intAdd(ps_instance_ptr s, pq_instance_ptr p)
+pq_node_ptr pf_boolNot(ps_instance_ptr s, pq_instance_ptr p)
+{
+    // ps_display(s);
+    pq_node_ptr a = ps_pop(s);
+    if (a && a->type == 'b')
+    {
+        long result = ! a->data->w.b;
+        pq_free_node(a);
+        return make_boolean_node(result);
+    }
+    else
+    {
+        printf("'!' expected the item at the top of the stack to be boolean, but got type %c instead\n", a->type);
+    }
+    pq_free_node(a);
+    return NULL;
+};
+pq_node_ptr pf_numAdd(ps_instance_ptr s, pq_instance_ptr p)
 {
     // ps_display(s);
     pq_node_ptr a = ps_pop(s);
@@ -469,23 +486,64 @@ pq_node_ptr pf_intAdd(ps_instance_ptr s, pq_instance_ptr p)
             }
             else
             {
-                printf("intAdd both args to be integer or both to be floating point, but got a mix\n");
+                printf("add both args to be integer or both to be floating point, but got a mix\n");
             }
         }
         else
         {
-            printf("intAdd expected top(-1) to be integer, but got type %c instead\n", b->type);
+            printf("add expected top(-1) to be integer, but got type %c instead\n", b->type);
         }
         pq_free_node(b);
     }
     else
     {
-        printf("intAdd expected top to be integer, but got type %c instead\n", a->type);
+        printf("add expected top to be integer, but got type %c instead\n", a->type);
     }
     pq_free_node(a);
     return NULL;
 };
-pq_node_ptr pf_intMult(ps_instance_ptr s, pq_instance_ptr p)
+pq_node_ptr pf_numSubtract(ps_instance_ptr s, pq_instance_ptr p)
+{
+    // ps_display(s);
+    pq_node_ptr a = ps_pop(s);
+    if (a && (a->type == 'i' || a->type == 'd'))
+    {
+        pq_node_ptr b = ps_pop(s);
+        if (b && (b->type == 'i' || b->type == 'd'))
+        {
+            if (a->type == 'i' && b->type == 'i')
+            {
+                long sum = b->data->w.i - a->data->w.i;
+                pq_free_node(a);
+                pq_free_node(b);
+                return make_integer_node(sum);
+            }
+            else if (a->type == 'd' && b->type == 'd')
+            {
+                double sum = b->data->w.i - a->data->w.i;
+                pq_free_node(a);
+                pq_free_node(b);
+                return make_double_node(sum);
+            }
+            else
+            {
+                printf("subtract both args to be integer or both to be floating point, but got a mix\n");
+            }
+        }
+        else
+        {
+            printf("subtract expected top(-1) to be integer, but got type %c instead\n", b->type);
+        }
+        pq_free_node(b);
+    }
+    else
+    {
+        printf("subtract expected top to be integer, but got type %c instead\n", a->type);
+    }
+    pq_free_node(a);
+    return NULL;
+};
+pq_node_ptr pf_numMult(ps_instance_ptr s, pq_instance_ptr p)
 {
     // ps_display(s);
     pq_node_ptr a = ps_pop(s);
@@ -510,18 +568,59 @@ pq_node_ptr pf_intMult(ps_instance_ptr s, pq_instance_ptr p)
             }
             else
             {
-                printf("intMult both args to be integer or both to be floating point, but got a mix\n");
+                printf("numMult both args to be integer or both to be floating point, but got a mix\n");
             }
         }
         else
         {
-            printf("intMult expected top(-1) to be integer, but got type %c instead\n", b->type);
+            printf("numMult expected top(-1) to be integer, but got type %c instead\n", b->type);
         }
         pq_free_node(b);
     }
     else
     {
-        printf("intMult expected top to be integer, but got type %c instead\n", a->type);
+        printf("numMult expected top to be integer, but got type %c instead\n", a->type);
+    }
+    pq_free_node(a);
+    return NULL;
+};
+pq_node_ptr pf_numDivide(ps_instance_ptr s, pq_instance_ptr p)
+{
+    // ps_display(s);
+    pq_node_ptr a = ps_pop(s);
+    if (a && (a->type == 'i' || a->type == 'd'))
+    {
+        pq_node_ptr b = ps_pop(s);
+        if (b && (b->type == 'i' || b->type == 'd'))
+        {
+            if (a->type == 'i' && b->type == 'i')
+            {
+                long prod = b->data->w.i / a->data->w.i;
+                pq_free_node(a);
+                pq_free_node(b);
+                return make_integer_node(prod);
+            }
+            else if (a->type == 'd' && b->type == 'd')
+            {
+                double prod = b->data->w.i / a->data->w.i;
+                pq_free_node(a);
+                pq_free_node(b);
+                return make_double_node(prod);
+            }
+            else
+            {
+                printf("numDivide both args to be integer or both to be floating point, but got a mix\n");
+            }
+        }
+        else
+        {
+            printf("numDivide expected top(-1) to be integer, but got type %c instead\n", b->type);
+        }
+        pq_free_node(b);
+    }
+    else
+    {
+        printf("numDivide expected top to be integer, but got type %c instead\n", a->type);
     }
     pq_free_node(a);
     return NULL;
@@ -740,10 +839,13 @@ dictionary *init_core_word_dictionary()
     dictionary_set(wd, "twice", make_list_node("dup +"));
     dictionary_set(wd, "dup2", make_list_node("[dup] dip dup [swap] dip"));
     dictionary_set(wd, "strAppend", make_fun_node(pf_strAppend));
-    dictionary_set(wd, "+", make_fun_node(pf_intAdd));
-    dictionary_set(wd, "*", make_fun_node(pf_intMult));
+    dictionary_set(wd, "+", make_fun_node(pf_numAdd));
+    dictionary_set(wd, "-", make_fun_node(pf_numSubtract));
+    dictionary_set(wd, "*", make_fun_node(pf_numMult));
+    dictionary_set(wd, "/", make_fun_node(pf_numDivide));
     dictionary_set(wd, "||", make_fun_node(pf_boolOr));
     dictionary_set(wd, "&&", make_fun_node(pf_boolAnd));
+    dictionary_set(wd, "!", make_fun_node(pf_boolNot));
     dictionary_set(wd, "swap", make_fun_node(pf_swap));
     dictionary_set(wd, "drop", make_fun_node(pf_drop));
     dictionary_set(wd, "size", make_fun_node(pf_size));
