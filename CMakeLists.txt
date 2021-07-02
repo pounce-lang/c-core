@@ -4,10 +4,10 @@ project(pounce_repl_project)
 pico_sdk_init()
 
 add_executable(pounce_repl
-    src/pico-repl.c
+    src/repl/pico-repl.c
 )
 
-target_link_libraries(pounce_repl pico_stdlib)
+target_link_libraries(pounce_repl pico_stdlib) # tinyusb_dev
 
 pico_enable_stdio_usb(pounce_repl 1)
 pico_enable_stdio_uart(pounce_repl 0)

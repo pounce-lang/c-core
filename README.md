@@ -2,7 +2,7 @@
 (work in progress) "C" code version of Pounce (parser and interpreter) intended for micro controllers, or web assembly.
 
 ## build the REPL with gcc
-`gcc -o ./dist/repl ./src/repl.c ./src/linenoise/linenoise.c`
+`gcc -o ./dist/repl ./src/repl/repl.c ./src/linenoise/linenoise.c`
 
 `./dist/repl`
 

@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "pounce.c"
-#include "linenoise/linenoise.h"
+#include "../pounce.c"
+#include "../linenoise/linenoise.h"
 
 int main(int argc, char **argv)
 {
