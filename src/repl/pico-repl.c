@@ -42,7 +42,7 @@ int main()
 
     dictionary *wd = init_core_word_dictionary();
 
-    char input_program[INPUT_SIZE];
+    char input_program[INPUT_SIZE] = {0x00};
     char input_char = getchar();
     short input_i;
 
@@ -106,6 +106,10 @@ int main()
                     else if (input_char == 'D')
                     {
                         // left arrow
+                    }
+                    else
+                    {
+                        printf("got a ctrl key '%c'\n", input_char);
                     }
                 }
             }

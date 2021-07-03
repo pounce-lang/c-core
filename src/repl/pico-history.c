@@ -1,7 +1,7 @@
 #define HISTORY_SIZE 10
 #define INPUT_SIZE 81
 char hist[HISTORY_SIZE][INPUT_SIZE];
-char stashed[INPUT_SIZE] = {0};
+char stashed[INPUT_SIZE] = {0x00};
 
 short hist_last = -1, hist_top = -1;
 
@@ -57,7 +57,7 @@ void push_history(char *s)
 
 char *peek_history(short offset)
 {
-    if (offset == 0)
+    if (offset <= 0)
     {
         return stashed;
     }
