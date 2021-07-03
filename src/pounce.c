@@ -78,11 +78,13 @@ char strToNumber(long *ival, double *fval, char *s)
     double float_value = strtod(s, &extra);
     if (*extra)
     {
-        if (strcmp(extra, "true") == 0) {
+        if (strcmp(extra, "true") == 0)
+        {
             *ival = 1;
             return 'b';
         }
-        if (strcmp(extra, "false") == 0) {
+        if (strcmp(extra, "false") == 0)
+        {
             *ival = 0;
             return 'b';
         }
@@ -294,7 +296,7 @@ ps_instance_ptr purr(ps_instance_ptr s, pq_instance_ptr p, dictionary *d)
                 ps_push_node(s, w);
             }
         }
-        else 
+        else
         {
             ps_push_node(s, w);
         }
@@ -347,9 +349,9 @@ pq_node_ptr make_double_node(double d)
     n->data->w.d = d;
     return n;
 }
-char min_char(char num1, char num2) 
+char min_char(char num1, char num2)
 {
-    return (num1 > num2 ) ? num2 : num1;
+    return (num1 > num2) ? num2 : num1;
 }
 
 pq_node_ptr pf_strAppend(ps_instance_ptr s, pq_instance_ptr p)
@@ -380,13 +382,15 @@ pq_node_ptr pf_strAppend(ps_instance_ptr s, pq_instance_ptr p)
         {
             fprintf(stderr, "strAppend encountered a non string at top(-1) of stack\n");
         }
-        if (b) pq_free_node(b);
+        if (b)
+            pq_free_node(b);
     }
     else
     {
         fprintf(stderr, "strAppend encountered a non string at top of stack\n");
     }
-    if (a) pq_free_node(a);
+    if (a)
+        pq_free_node(a);
     return NULL;
 };
 
@@ -450,7 +454,7 @@ pq_node_ptr pf_boolNot(ps_instance_ptr s, pq_instance_ptr p)
     pq_node_ptr a = ps_pop(s);
     if (a && a->type == 'b')
     {
-        long result = ! a->data->w.b;
+        long result = !a->data->w.b;
         pq_free_node(a);
         return make_boolean_node(result);
     }
@@ -479,7 +483,7 @@ pq_node_ptr pf_numAdd(ps_instance_ptr s, pq_instance_ptr p)
             }
             else if (a->type == 'd' && b->type == 'd')
             {
-                double sum = b->data->w.i + a->data->w.i;
+                double sum = b->data->w.d + a->data->w.d;
                 pq_free_node(a);
                 pq_free_node(b);
                 return make_double_node(sum);
@@ -520,7 +524,7 @@ pq_node_ptr pf_numSubtract(ps_instance_ptr s, pq_instance_ptr p)
             }
             else if (a->type == 'd' && b->type == 'd')
             {
-                double sum = b->data->w.i - a->data->w.i;
+                double sum = b->data->w.d - a->data->w.d;
                 pq_free_node(a);
                 pq_free_node(b);
                 return make_double_node(sum);
@@ -545,12 +549,18 @@ pq_node_ptr pf_numSubtract(ps_instance_ptr s, pq_instance_ptr p)
 };
 pq_node_ptr pf_numMult(ps_instance_ptr s, pq_instance_ptr p)
 {
-    // ps_display(s);
     pq_node_ptr a = ps_pop(s);
-    if (a && (a->type == 'i' || a->type == 'd'))
+    if (a == NULL)
+        return NULL;
+    if (a->type == 'i' || a->type == 'd')
     {
         pq_node_ptr b = ps_pop(s);
-        if (b && (b->type == 'i' || b->type == 'd'))
+        if (b == NULL)
+        {
+            ps_push_node(s, a);
+            return NULL;
+        }
+        if (b->type == 'i' || b->type == 'd')
         {
             if (a->type == 'i' && b->type == 'i')
             {
@@ -561,7 +571,7 @@ pq_node_ptr pf_numMult(ps_instance_ptr s, pq_instance_ptr p)
             }
             else if (a->type == 'd' && b->type == 'd')
             {
-                double prod = b->data->w.i * a->data->w.i;
+                double prod = b->data->w.d * a->data->w.d;
                 pq_free_node(a);
                 pq_free_node(b);
                 return make_double_node(prod);
@@ -569,24 +579,28 @@ pq_node_ptr pf_numMult(ps_instance_ptr s, pq_instance_ptr p)
             else
             {
                 printf("numMult both args to be integer or both to be floating point, but got a mix\n");
+                ps_push_node(s, b);
+                ps_push_node(s, a);
+                return NULL;
             }
         }
         else
         {
-            printf("numMult expected top(-1) to be integer, but got type %c instead\n", b->type);
+            printf("numMult expected top(-1) to be a number, but got type %c instead\n", b->type);
+            ps_push_node(s, b);
+            ps_push_node(s, a);
+            return NULL;
         }
-        pq_free_node(b);
     }
     else
     {
-        printf("numMult expected top to be integer, but got type %c instead\n", a->type);
+        printf("numMult expected top to be a number, but got type %c instead\n", a->type);
+        ps_push_node(s, a);
+        return NULL;
     }
-    pq_free_node(a);
-    return NULL;
 };
 pq_node_ptr pf_numDivide(ps_instance_ptr s, pq_instance_ptr p)
 {
-    // ps_display(s);
     pq_node_ptr a = ps_pop(s);
     if (a && (a->type == 'i' || a->type == 'd'))
     {
@@ -602,7 +616,7 @@ pq_node_ptr pf_numDivide(ps_instance_ptr s, pq_instance_ptr p)
             }
             else if (a->type == 'd' && b->type == 'd')
             {
-                double prod = b->data->w.i / a->data->w.i;
+                double prod = b->data->w.d / a->data->w.d;
                 pq_free_node(a);
                 pq_free_node(b);
                 return make_double_node(prod);
@@ -611,18 +625,18 @@ pq_node_ptr pf_numDivide(ps_instance_ptr s, pq_instance_ptr p)
             {
                 printf("numDivide both args to be integer or both to be floating point, but got a mix\n");
             }
+            pq_free_node(b);
         }
         else
         {
             printf("numDivide expected top(-1) to be integer, but got type %c instead\n", b->type);
         }
-        pq_free_node(b);
+        pq_free_node(a);
     }
     else
     {
         printf("numDivide expected top to be integer, but got type %c instead\n", a->type);
     }
-    pq_free_node(a);
     return NULL;
 };
 
@@ -833,6 +847,59 @@ pq_node_ptr pf_dip(ps_instance_ptr s, pq_instance_ptr p)
     return NULL;
 };
 
+pq_node_ptr pf_numGt(ps_instance_ptr s, pq_instance_ptr p)
+{
+    pq_node_ptr a = ps_pop(s);
+    if (a == NULL)
+        return NULL;
+    if (a->type == 'i' || a->type == 'd')
+    {
+        pq_node_ptr b = ps_pop(s);
+        if (b == NULL)
+        {
+            ps_push_node(s, a);
+            return NULL;
+        }
+        if (b->type == 'i' || b->type == 'd')
+        {
+            if (a->type == 'i' && b->type == 'i')
+            {
+                bool prod = (b->data->w.i > a->data->w.i);
+                pq_free_node(a);
+                pq_free_node(b);
+                return make_boolean_node(prod);
+            }
+            else if (a->type == 'd' && b->type == 'd')
+            {
+                bool prod = (b->data->w.d > a->data->w.d);
+                pq_free_node(a);
+                pq_free_node(b);
+                return make_boolean_node(prod);
+            }
+            else
+            {
+                printf("'>' both args to be integer or both to be floating point, but got a mix\n");
+                ps_push_node(s, b);
+                ps_push_node(s, a);
+                return NULL;
+            }
+        }
+        else
+        {
+            printf("'>' expected top(-1) to be a number, but got type %c instead\n", b->type);
+            ps_push_node(s, b);
+            ps_push_node(s, a);
+            return NULL;
+        }
+    }
+    else
+    {
+        printf("'>' expected top to be a number, but got type %c instead\n", a->type);
+        ps_push_node(s, a);
+        return NULL;
+    }
+};
+
 dictionary *init_core_word_dictionary()
 {
     dictionary *wd = dictionary_new(16);
@@ -854,6 +921,15 @@ dictionary *init_core_word_dictionary()
     dictionary_set(wd, "uncons", make_fun_node(pf_uncons));
     dictionary_set(wd, "play", make_fun_node(pf_play));
     dictionary_set(wd, "dip", make_fun_node(pf_dip));
+    // concat binrec split < <= ... preping for quick-sort
+    // dictionary_set(wd, "<", make_fun_node(pf_numLt));
+    // dictionary_set(wd, "<=", make_fun_node(pf_numLtEq));
+    dictionary_set(wd, ">", make_fun_node(pf_numGt));
+    // dictionary_set(wd, ">=", make_fun_node(pf_numGtEq));
+    // dictionary_set(wd, "==", make_fun_node(pf_numEq));
+    // dictionary_set(wd, "split", make_fun_node(pf_arrSplit));
+    // dictionary_set(wd, "concat", make_fun_node(pf_arrConcat));
+    // dictionary_set(wd, "binrec", make_fun_node(pf_binrec));
     return wd;
 }
 
