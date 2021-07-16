@@ -45,6 +45,8 @@ int main()
     char input_program[INPUT_SIZE] = {0x00};
     char input_char = getchar();
     short input_i;
+    short cursor_i;
+    char temp[INPUT_SIZE] = {0x00};
 
     ps_instance_ptr stack = ps_init();
     gpio_put(LED_PIN, 1);
@@ -62,6 +64,7 @@ int main()
 
         input_i = 0;
         input_char = ' ';
+        cursor_i = 0;
 
         while (input_char != '\n' && input_char != '\r' && input_i < (INPUT_SIZE - 1))
         {
@@ -97,20 +100,38 @@ int main()
 
                         strcpy(input_program, peek_history(histor_i));
                         input_i = strlen(input_program);
-                        printf("\r%s\r> %s", blank_line, input_program);
+                        strncpy(temp, input_program, cursor_i);
+                        temp[cursor_i] = 0;
+                        printf("\r%s\r> %s\r> %s", blank_line, input_program, temp);
                     }
                     else if (input_char == 'C')
                     {
                         // right arrow
+                        cursor_i++;
+                        if (cursor_i > input_i) cursor_i = input_i;
                     }
                     else if (input_char == 'D')
                     {
                         // left arrow
+                        cursor_i--;
+                        if (cursor_i < 0) cursor_i = 0;
+                    }
+                    else if (input_char == '1')
+                    {
+                        // extended escape sequence
+                        printf("got different escape %c ", input_char);
+                        input_char = getchar();
+                        printf(" -- %c\n", input_char);
                     }
                     else
                     {
-                        printf("got a ctrl key '%c'\n", input_char);
+                        printf("got a ctrl key ('[', '%c')\n", input_char);
                     }
+                }
+                else {
+                    printf(" not a '[' escape %c ", input_char);
+                    input_char = getchar();
+                    printf(" -- %c\n", input_char);
                 }
             }
             else
