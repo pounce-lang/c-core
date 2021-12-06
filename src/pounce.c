@@ -5,6 +5,7 @@
 #include "dict.c"
 #include "stack.c"
 #include "pounce.h"
+#include "hal/gpio.h"
 
 pq_node_ptr pf_play(ps_instance_ptr s, pq_instance_ptr p);
 
@@ -71,7 +72,7 @@ typedef struct parser_result
 } * parser_result_ptr;
 pq_node_ptr dup_node(pq_node_ptr e);
 
-// returns 'i' for int, 'f' for float and 's' for string (NaN)
+// returns INT_T for int, REAL_T for float and STRING_T for string (NaN)
 char strToNumber(long *ival, double *fval, char *s)
 {
     char *extra;
@@ -81,23 +82,23 @@ char strToNumber(long *ival, double *fval, char *s)
         if (strcmp(extra, "true") == 0)
         {
             *ival = 1;
-            return 'b';
+            return BOOL_T;
         }
         if (strcmp(extra, "false") == 0)
         {
             *ival = 0;
-            return 'b';
+            return BOOL_T;
         }
-        return 's';
+        return STRING_T;
     }
     long int_value = atol(s);
     if (float_value == (double)int_value && !strchr(s, '.'))
     {
         *ival = int_value;
-        return 'i';
+        return INT_T;
     }
     *fval = float_value;
-    return 'f';
+    return REAL_T;
 }
 
 int save_word(int word_i, char *word, parser_result_ptr result)
@@ -108,21 +109,21 @@ int save_word(int word_i, char *word, parser_result_ptr result)
         long intVal;
         double floatVal;
         char kind = strToNumber(&intVal, &floatVal, word);
-        if (kind == 'i')
+        if (kind == INT_T)
         {
             pq_enqueue_i(result->pq, intVal);
         }
-        else if (kind == 'b')
+        else if (kind == BOOL_T)
         {
             pq_enqueue_b(result->pq, (bool)intVal);
         }
-        else if (kind == 'f')
+        else if (kind == REAL_T)
         {
             pq_enqueue_d(result->pq, floatVal);
         }
-        else if (kind == 's')
+        else if (kind == STRING_T)
         {
-            pq_enqueue_s(result->pq, 's', word);
+            pq_enqueue_s(result->pq, STRING_T, word);
         }
         else
         {
@@ -233,6 +234,32 @@ parser_result_ptr parse(int i, const char *pt)
     return result;
 };
 
+
+ps_instance_ptr process_compose(pq_instance_ptr p, dictionary *d)
+{
+    pq_instance_ptr result_pq;
+    pq_init(result_pq);
+    while (!is_pq_empty(p))
+    {
+        pq_node_ptr w = pq_dequeue(p);
+        if (w->type == STRING_T && strcmp(w->data->w.s, "compose")) {
+            pq_node_ptr phrase = pq_popback(result_pq);
+            pq_node_ptr new_word = pq_popback(result_pq);
+            // check on these two ingredients
+            if (phrase && phrase->type == LIST_T && new_word && new_word->type == LIST_T) {
+                // process the composition
+            }
+            else {
+                // this is bad
+            }
+
+        }
+        else {
+            pq_enqueue(result_pq, w);
+        }
+    }
+};
+
 ps_instance_ptr purr(ps_instance_ptr s, pq_instance_ptr p, dictionary *d)
 {
     while (!is_pq_empty(p))
@@ -249,35 +276,35 @@ ps_instance_ptr purr(ps_instance_ptr s, pq_instance_ptr p, dictionary *d)
                 {
                     ps_push_s(s, w_def->data->w.s);
                 }
-                else if (w_def->type == 'b')
+                else if (w_def->type == BOOL_T)
                 {
                     ps_push_b(s, w_def->data->w.b);
                 }
-                else if (w_def->type == 'i')
+                else if (w_def->type == INT_T)
                 {
                     ps_push_i(s, w_def->data->w.i);
                 }
-                else if (w_def->type == 'd')
+                else if (w_def->type == REAL_T)
                 {
                     ps_push_d(s, w_def->data->w.d);
                 }
-                else if (w_def->type == 'l')
+                else if (w_def->type == LIST_T)
                 {
                     ps_push_l(s, dup_node(w_def)->data->w.list);
                     pq_requeue_s(p, "play");
                 }
-                else if (w_def->type == 'f')
+                else if (w_def->type == IFUNC_T)
                 {
                     pq_node_ptr res = w_def->data->w.fun(s, p);
                     if (!res)
                     {
                         // OK NULL means nothing to add to the stack
                     }
-                    else if (res->type != 'l')
+                    else if (res->type != LIST_T)
                     {
                         ps_push_node(s, res);
                     }
-                    else if (res->type == 'l')
+                    else if (res->type == LIST_T)
                     {
                         ps_push_l(s, res->data->w.list);
                     }
@@ -314,7 +341,7 @@ pq_node_ptr make_string_node(char t, char *s)
 pq_node_ptr make_list_node(char *s)
 {
     pq_node_ptr n = pq_init_node();
-    n->type = 'l';
+    n->type = LIST_T;
     parser_result_ptr pr = parse(0, s);
     n->data->w.list = pr->pq->front;
     free(pr->pq);
@@ -324,28 +351,28 @@ pq_node_ptr make_list_node(char *s)
 pq_node_ptr make_fun_node(pq_node_ptr (*fun)(ps_instance_ptr, pq_instance_ptr))
 {
     pq_node_ptr n = pq_init_node();
-    n->type = 'f';
+    n->type = IFUNC_T;
     n->data->w.fun = fun;
     return n;
 }
 pq_node_ptr make_boolean_node(bool b)
 {
     pq_node_ptr n = pq_init_node();
-    n->type = 'b';
+    n->type = BOOL_T;
     n->data->w.b = b;
     return n;
 }
 pq_node_ptr make_integer_node(long i)
 {
     pq_node_ptr n = pq_init_node();
-    n->type = 'i';
+    n->type = INT_T;
     n->data->w.i = i;
     return n;
 }
 pq_node_ptr make_double_node(double d)
 {
     pq_node_ptr n = pq_init_node();
-    n->type = 'd';
+    n->type = REAL_T;
     n->data->w.d = d;
     return n;
 }
@@ -398,10 +425,10 @@ pq_node_ptr pf_boolOr(ps_instance_ptr s, pq_instance_ptr p)
 {
     // ps_display(s);
     pq_node_ptr a = ps_pop(s);
-    if (a && a->type == 'b')
+    if (a && a->type == BOOL_T)
     {
         pq_node_ptr b = ps_pop(s);
-        if (b && b->type == 'b')
+        if (b && b->type == BOOL_T)
         {
             long result = b->data->w.b || a->data->w.b;
             pq_free_node(a);
@@ -425,10 +452,10 @@ pq_node_ptr pf_boolAnd(ps_instance_ptr s, pq_instance_ptr p)
 {
     // ps_display(s);
     pq_node_ptr a = ps_pop(s);
-    if (a && a->type == 'b')
+    if (a && a->type == BOOL_T)
     {
         pq_node_ptr b = ps_pop(s);
-        if (b && b->type == 'b')
+        if (b && b->type == BOOL_T)
         {
             long result = b->data->w.b && a->data->w.b;
             pq_free_node(a);
@@ -452,7 +479,7 @@ pq_node_ptr pf_boolNot(ps_instance_ptr s, pq_instance_ptr p)
 {
     // ps_display(s);
     pq_node_ptr a = ps_pop(s);
-    if (a && a->type == 'b')
+    if (a && a->type == BOOL_T)
     {
         long result = !a->data->w.b;
         pq_free_node(a);
@@ -469,19 +496,19 @@ pq_node_ptr pf_numAdd(ps_instance_ptr s, pq_instance_ptr p)
 {
     // ps_display(s);
     pq_node_ptr a = ps_pop(s);
-    if (a && (a->type == 'i' || a->type == 'd'))
+    if (a && (a->type == INT_T || a->type == REAL_T))
     {
         pq_node_ptr b = ps_pop(s);
-        if (b && (b->type == 'i' || b->type == 'd'))
+        if (b && (b->type == INT_T || b->type == REAL_T))
         {
-            if (a->type == 'i' && b->type == 'i')
+            if (a->type == INT_T && b->type == INT_T)
             {
                 long sum = b->data->w.i + a->data->w.i;
                 pq_free_node(a);
                 pq_free_node(b);
                 return make_integer_node(sum);
             }
-            else if (a->type == 'd' && b->type == 'd')
+            else if (a->type == REAL_T && b->type == REAL_T)
             {
                 double sum = b->data->w.d + a->data->w.d;
                 pq_free_node(a);
@@ -510,19 +537,19 @@ pq_node_ptr pf_numSubtract(ps_instance_ptr s, pq_instance_ptr p)
 {
     // ps_display(s);
     pq_node_ptr a = ps_pop(s);
-    if (a && (a->type == 'i' || a->type == 'd'))
+    if (a && (a->type == INT_T || a->type == REAL_T))
     {
         pq_node_ptr b = ps_pop(s);
-        if (b && (b->type == 'i' || b->type == 'd'))
+        if (b && (b->type == INT_T || b->type == REAL_T))
         {
-            if (a->type == 'i' && b->type == 'i')
+            if (a->type == INT_T && b->type == INT_T)
             {
                 long sum = b->data->w.i - a->data->w.i;
                 pq_free_node(a);
                 pq_free_node(b);
                 return make_integer_node(sum);
             }
-            else if (a->type == 'd' && b->type == 'd')
+            else if (a->type == REAL_T && b->type == REAL_T)
             {
                 double sum = b->data->w.d - a->data->w.d;
                 pq_free_node(a);
@@ -552,7 +579,7 @@ pq_node_ptr pf_numMult(ps_instance_ptr s, pq_instance_ptr p)
     pq_node_ptr a = ps_pop(s);
     if (a == NULL)
         return NULL;
-    if (a->type == 'i' || a->type == 'd')
+    if (a->type == INT_T || a->type == REAL_T)
     {
         pq_node_ptr b = ps_pop(s);
         if (b == NULL)
@@ -560,16 +587,16 @@ pq_node_ptr pf_numMult(ps_instance_ptr s, pq_instance_ptr p)
             ps_push_node(s, a);
             return NULL;
         }
-        if (b->type == 'i' || b->type == 'd')
+        if (b->type == INT_T || b->type == REAL_T)
         {
-            if (a->type == 'i' && b->type == 'i')
+            if (a->type == INT_T && b->type == INT_T)
             {
                 long prod = b->data->w.i * a->data->w.i;
                 pq_free_node(a);
                 pq_free_node(b);
                 return make_integer_node(prod);
             }
-            else if (a->type == 'd' && b->type == 'd')
+            else if (a->type == REAL_T && b->type == REAL_T)
             {
                 double prod = b->data->w.d * a->data->w.d;
                 pq_free_node(a);
@@ -602,19 +629,19 @@ pq_node_ptr pf_numMult(ps_instance_ptr s, pq_instance_ptr p)
 pq_node_ptr pf_numDivide(ps_instance_ptr s, pq_instance_ptr p)
 {
     pq_node_ptr a = ps_pop(s);
-    if (a && (a->type == 'i' || a->type == 'd'))
+    if (a && (a->type == INT_T || a->type == REAL_T))
     {
         pq_node_ptr b = ps_pop(s);
-        if (b && (b->type == 'i' || b->type == 'd'))
+        if (b && (b->type == INT_T || b->type == REAL_T))
         {
-            if (a->type == 'i' && b->type == 'i')
+            if (a->type == INT_T && b->type == INT_T)
             {
                 long prod = b->data->w.i / a->data->w.i;
                 pq_free_node(a);
                 pq_free_node(b);
                 return make_integer_node(prod);
             }
-            else if (a->type == 'd' && b->type == 'd')
+            else if (a->type == REAL_T && b->type == REAL_T)
             {
                 double prod = b->data->w.d / a->data->w.d;
                 pq_free_node(a);
@@ -681,7 +708,7 @@ pq_node_ptr pf_drop(ps_instance_ptr s, pq_instance_ptr p)
 pq_node_ptr pf_size(ps_instance_ptr s, pq_instance_ptr p)
 {
     pq_node_ptr e = s->top;
-    if (!e || e->type != 'l')
+    if (!e || e->type != LIST_T)
     {
         printf("'size' expected a list at the top of the stack\n");
         return NULL;
@@ -703,17 +730,17 @@ pq_node_ptr dup_node(pq_node_ptr e)
         return NULL;
     if (type_s(e))
         return make_string_node(e->type, e->data->w.s);
-    if (e->type == 'i')
+    if (e->type == INT_T)
         return make_integer_node(e->data->w.i);
-    if (e->type == 'b')
+    if (e->type == BOOL_T)
         return make_boolean_node(e->data->w.i);
-    if (e->type == 'd')
+    if (e->type == REAL_T)
         return make_double_node(e->data->w.d);
-    if (e->type == 'l')
+    if (e->type == LIST_T)
     {
         pq_node_ptr l = e->data->w.list;
         pq_node_ptr new_l = pq_init_node();
-        new_l->type = 'l';
+        new_l->type = LIST_T;
         new_l->data->w.list = NULL;
         pq_node_ptr cur, head = NULL;
         if (l)
@@ -747,7 +774,7 @@ pq_node_ptr pf_dup(ps_instance_ptr s, pq_instance_ptr p)
 pq_node_ptr pf_cons(ps_instance_ptr s, pq_instance_ptr p)
 {
     pq_node_ptr list = s->top;
-    if (list && list->type == 'l')
+    if (list && list->type == LIST_T)
     {
         pq_node_ptr ele = s->top->previous;
         if (ele)
@@ -770,7 +797,7 @@ pq_node_ptr pf_cons(ps_instance_ptr s, pq_instance_ptr p)
 pq_node_ptr pf_uncons(ps_instance_ptr s, pq_instance_ptr p)
 {
     pq_node_ptr e = s->top;
-    if (!e || e->type != 'l')
+    if (!e || e->type != LIST_T)
     {
         printf("'uncons' expected a list at the top of the stack\n");
         return NULL;
@@ -791,6 +818,60 @@ pq_node_ptr pf_uncons(ps_instance_ptr s, pq_instance_ptr p)
     return NULL;
 };
 
+pq_node_ptr pf_gpioInit(ps_instance_ptr s, pq_instance_ptr p)
+{
+    pq_node_ptr a = ps_pop(s);
+    if (a && a->type == STRING_T)
+    {
+        pq_node_ptr b = ps_pop(s);
+        if (b && b->type == INT_T)
+        {
+            bool out_dir = (strcmp(a->data->w.s, "OUT") == 0);
+            printf("out_dir = %d", out_dir);
+            init_gpio(b->data->w.i, out_dir, 0);
+            pq_free_node(b);
+        }
+        else
+        {
+            printf("gpioInit expected top(-1) to be integer, but got type %c instead\n", b->type);
+        }
+        pq_free_node(a);
+    }
+    else
+    {
+        printf("gpioInit expected top to be string [IN OUT], but got type %c instead\n", a->type);
+    }
+    return NULL;
+};
+
+pq_node_ptr pf_gpioSet(ps_instance_ptr s, pq_instance_ptr p)
+{
+    // ps_display(s);
+    pq_node_ptr a = ps_pop(s);
+    if (a && a->type == STRING_T)
+    {
+        pq_node_ptr pin = ps_pop(s);
+        if (pin && pin->type == INT_T)
+        {
+            bool val = (strcmp(a->data->w.s, "HIGH") == 0);
+            set_gpio(pin->data->w.i, val);
+            pq_free_node(pin);
+        }
+        else
+        {
+            printf("gpioSet expected top(-1) to be integer, but got type %c instead\n", pin->type);
+        }
+        pq_free_node(a);
+    }
+    else
+    {
+        printf("gpioSet expected top to be string [LOW HIGH], but got type %c instead\n", a->type);
+    }
+    // nothing was added to the stack or the pl
+    return NULL;
+};
+
+
 pq_node_ptr reverse_copy(pq_node_ptr l)
 {
     pq_node_ptr rev;
@@ -808,7 +889,7 @@ pq_node_ptr reverse_copy(pq_node_ptr l)
 pq_node_ptr pf_play(ps_instance_ptr s, pq_instance_ptr p)
 {
     pq_node_ptr phrase = ps_pop(s);
-    if (!phrase || phrase->type != 'l')
+    if (!phrase || phrase->type != LIST_T)
     {
         printf("'play' expected a list at the top of the stack\n");
         return NULL;
@@ -829,7 +910,7 @@ pq_node_ptr pf_dip(ps_instance_ptr s, pq_instance_ptr p)
 {
     pq_node_ptr e = ps_pop(s);
     pq_node_ptr t = ps_pop(s);
-    if (!e || e->type != 'l')
+    if (!e || e->type != LIST_T)
     {
         printf("'dip' expected a list at the top of the stack\n");
         return NULL;
@@ -852,7 +933,7 @@ pq_node_ptr pf_numGt(ps_instance_ptr s, pq_instance_ptr p)
     pq_node_ptr a = ps_pop(s);
     if (a == NULL)
         return NULL;
-    if (a->type == 'i' || a->type == 'd')
+    if (a->type == INT_T || a->type == REAL_T)
     {
         pq_node_ptr b = ps_pop(s);
         if (b == NULL)
@@ -860,16 +941,16 @@ pq_node_ptr pf_numGt(ps_instance_ptr s, pq_instance_ptr p)
             ps_push_node(s, a);
             return NULL;
         }
-        if (b->type == 'i' || b->type == 'd')
+        if (b->type == INT_T || b->type == REAL_T)
         {
-            if (a->type == 'i' && b->type == 'i')
+            if (a->type == INT_T && b->type == INT_T)
             {
                 bool prod = (b->data->w.i > a->data->w.i);
                 pq_free_node(a);
                 pq_free_node(b);
                 return make_boolean_node(prod);
             }
-            else if (a->type == 'd' && b->type == 'd')
+            else if (a->type == REAL_T && b->type == REAL_T)
             {
                 bool prod = (b->data->w.d > a->data->w.d);
                 pq_free_node(a);
@@ -902,7 +983,7 @@ pq_node_ptr pf_numGt(ps_instance_ptr s, pq_instance_ptr p)
 
 dictionary *init_core_word_dictionary()
 {
-    dictionary *wd = dictionary_new(16);
+    dictionary *wd = dictionary_new(32);
     dictionary_set(wd, "twice", make_list_node("dup +"));
     dictionary_set(wd, "dup2", make_list_node("[dup] dip dup [swap] dip"));
     dictionary_set(wd, "strAppend", make_fun_node(pf_strAppend));
@@ -930,6 +1011,9 @@ dictionary *init_core_word_dictionary()
     // dictionary_set(wd, "split", make_fun_node(pf_arrSplit));
     // dictionary_set(wd, "concat", make_fun_node(pf_arrConcat));
     // dictionary_set(wd, "binrec", make_fun_node(pf_binrec));
+    dictionary_set(wd, "gpioInit", make_fun_node(pf_gpioInit));
+    dictionary_set(wd, "gpioSet", make_fun_node(pf_gpioSet));
+    
     return wd;
 }
 

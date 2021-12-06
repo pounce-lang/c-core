@@ -5,8 +5,15 @@
 extern "C" {
 #endif
 
+#define BOOL_T 'b'
+#define STRING_T 's'
+#define INT_T 'i'
+#define REAL_T 'd'
+#define LIST_T 'l'
+#define IFUNC_T 'f'
+
 // MACRO to test for a string type node
-#define type_s(n) (n->type == 's' || n->type == '\'' || n->type == '"' || n->type == '`')
+#define type_s(n) (n->type == STRING_T || n->type == '\'' || n->type == '"' || n->type == '`')
 
 typedef struct word_struct
 {

@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.tcc": "c",
+        "istream": "c",
+        "pounce.h": "c"
+    }
+}

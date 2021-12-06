@@ -5,7 +5,7 @@
 #include "../pounce.c"
 #include "pico-history.c"
 
-const uint LED_PIN = 25;
+// const uint LED_PIN = 25;
 
 void clear_input(char *s)
 {
@@ -20,9 +20,9 @@ void exit_pounce(ps_instance_ptr stack, dictionary *wd)
     ps_clear(stack);
     free(stack);
     dictionary_del(wd);
-    gpio_put(LED_PIN, 1);
+    // gpio_put(LED_PIN, 1);
     sleep_ms(1000);
-    gpio_put(LED_PIN, 0);
+    // gpio_put(LED_PIN, 0);
     printf("exiting Pounce -\\_(*|*)_/-");
 }
 
@@ -32,12 +32,12 @@ int main()
     const char blank_line[INPUT_SIZE] = {[0 ...(INPUT_SIZE - 2)] ' ', 0};
     short histor_i = 0;
 
-    gpio_init(LED_PIN);
-    gpio_set_dir(LED_PIN, GPIO_OUT);
+    // gpio_init(LED_PIN);
+    // gpio_set_dir(LED_PIN, GPIO_OUT);
 
-    gpio_put(LED_PIN, 1);
+    // gpio_put(LED_PIN, 1);
     sleep_ms(5000);
-    gpio_put(LED_PIN, 0);
+    // gpio_put(LED_PIN, 0);
     sleep_ms(1000);
 
     dictionary *wd = init_core_word_dictionary();
@@ -49,17 +49,17 @@ int main()
     char temp[INPUT_SIZE] = {0x00};
 
     ps_instance_ptr stack = ps_init();
-    gpio_put(LED_PIN, 1);
+    // gpio_put(LED_PIN, 1);
     sleep_ms(250);
-    gpio_put(LED_PIN, 0);
+    // gpio_put(LED_PIN, 0);
     sleep_ms(250);
     printf("Pounce REPL (enter Pounce words or type 'exit' or <Ctrl-c> to leave)\n");
     while (true)
     {
         printf("> ");
-        gpio_put(LED_PIN, 1);
+        // gpio_put(LED_PIN, 1);
         sleep_ms(250);
-        gpio_put(LED_PIN, 0);
+        // gpio_put(LED_PIN, 0);
         sleep_ms(250);
 
         input_i = 0;
@@ -157,9 +157,9 @@ int main()
 
         if (pr && pr->pq)
         {
-            gpio_put(LED_PIN, 1);
+            // gpio_put(LED_PIN, 1);
             sleep_ms(250);
-            gpio_put(LED_PIN, 0);
+            // gpio_put(LED_PIN, 0);
 
             stack = purr(stack, pr->pq, wd);
             ps_display(stack);

@@ -4,6 +4,15 @@
 #include <stdbool.h>
 #include "pounce.h"
 
+/* A dequeue (or double ended) implementation.
+ * Standard Queue methods are: 
+ *  pq_enqueue() puts an element at the rear of the queue.
+ *  pq_dequeue() pulls out the first element at the front of the queue.
+ * Less standard methods are:
+ *  pq_requeue() puts an element into the front of the queue.
+ *  pq_popback() pulls the last element off of the rear of the queue.
+ */
+
 typedef struct pq_instance
 {
 	pq_node_ptr front; // = NULL;
@@ -72,11 +81,11 @@ void pq_free_node(pq_node_ptr node)
 	{
 		free(node->data->w.s);
 	}
-	if (node->type == 'l')
+	if (node->type == LIST_T)
 	{
 		pq_free_list(node->data->w.list);
 	}
-	// if (node->type == 'f')
+	// if (node->type == IFUNC_T)
 	// {
 	// 	free(node->data->w.fun);
 	// }
@@ -118,7 +127,7 @@ bool pq_requeue_s(pq_instance_ptr pq, char *value)
 	}
 
 	item->data->w.s = xstrcp(value);
-	item->type = 's';
+	item->type = STRING_T;
 
 	if (pq->front == NULL)
 	{
@@ -151,15 +160,12 @@ bool pq_requeue(pq_instance_ptr pq, pq_node_ptr item)
 	return true;
 }
 
-bool pq_enqueue_l(pq_instance_ptr pq, pq_node_ptr value)
+bool pq_enqueue(pq_instance_ptr pq, pq_node_ptr item)
 {
-	pq_node_ptr item = pq_init_node();
 	if (!item)
 	{
 		return false;
 	}
-	item->data->w.list = value;
-	item->type = 'l';
 
 	if (pq->rear == NULL)
 		pq->front = pq->rear = item;
@@ -171,6 +177,18 @@ bool pq_enqueue_l(pq_instance_ptr pq, pq_node_ptr value)
 	return true;
 };
 
+bool pq_enqueue_l(pq_instance_ptr pq, pq_node_ptr value)
+{
+	pq_node_ptr item = pq_init_node();
+	if (!item)
+	{
+		return false;
+	}
+	item->data->w.list = value;
+	item->type = LIST_T;
+
+	return pq_enqueue(pq, item);
+};
 bool pq_enqueue_b(pq_instance_ptr pq, bool value)
 {
 	pq_node_ptr item = pq_init_node();
@@ -179,16 +197,9 @@ bool pq_enqueue_b(pq_instance_ptr pq, bool value)
 		return false;
 	}
 	item->data->w.b = value;
-	item->type = 'b';
+	item->type = BOOL_T;
 
-	if (pq->rear == NULL)
-		pq->front = pq->rear = item;
-	else
-	{
-		pq->rear->previous = item;
-		pq->rear = item;
-	}
-	return true;
+	return pq_enqueue(pq, item);
 };
 bool pq_enqueue_i(pq_instance_ptr pq, long value)
 {
@@ -198,18 +209,10 @@ bool pq_enqueue_i(pq_instance_ptr pq, long value)
 		return false;
 	}
 	item->data->w.i = value;
-	item->type = 'i';
+	item->type = INT_T;
 
-	if (pq->rear == NULL)
-		pq->front = pq->rear = item;
-	else
-	{
-		pq->rear->previous = item;
-		pq->rear = item;
-	}
-	return true;
+	return pq_enqueue(pq, item);
 };
-
 bool pq_enqueue_d(pq_instance_ptr pq, double value)
 {
 	pq_node_ptr item = pq_init_node();
@@ -218,18 +221,10 @@ bool pq_enqueue_d(pq_instance_ptr pq, double value)
 		return false;
 	}
 	item->data->w.d = value;
-	item->type = 'd';
+	item->type = REAL_T;
 
-	if (pq->rear == NULL)
-		pq->front = pq->rear = item;
-	else
-	{
-		pq->rear->previous = item;
-		pq->rear = item;
-	}
-	return true;
+	return pq_enqueue(pq, item);
 };
-
 bool pq_enqueue_s(pq_instance_ptr pq, char t, char *value)
 {
 	pq_node_ptr item = pq_init_node();
@@ -240,14 +235,7 @@ bool pq_enqueue_s(pq_instance_ptr pq, char t, char *value)
 	item->data->w.s = xstrcp(value);
 	item->type = t;
 
-	if (pq->rear == NULL)
-		pq->front = pq->rear = item;
-	else
-	{
-		pq->rear->previous = item;
-		pq->rear = item;
-	}
-	return true;
+	return pq_enqueue(pq, item);
 }
 
 pq_node_ptr pq_dequeue(pq_instance_ptr pq)
@@ -265,6 +253,25 @@ pq_node_ptr pq_dequeue(pq_instance_ptr pq)
 	}
 	pq->front = pq->front->previous;
 	ret_val->previous = NULL;
+	return ret_val;
+}
+
+// popback is not very efficient, but assumed to be only used in non-time critical processes
+pq_node_ptr pq_popback(pq_instance_ptr pq)
+{
+	if (is_pq_empty(pq))
+	{
+		return NULL;
+	}
+	pq_node_ptr temp = pq->front;
+	pq_node_ptr ret_val = pq->rear;
+	// not a doubly linked list, so we have to walk the list
+	while (temp->previous != ret_val)
+	{
+		temp = temp->previous;
+	}
+	pq->rear = temp;
+	temp->previous = NULL;
 	return ret_val;
 }
 

@@ -6,7 +6,7 @@
 
 pq_node_ptr make_string_node(char * s){
     pq_node_ptr n = pq_init_node();
-    n->type = 's';
+    n->type = STRING_T;
     n->data->w.s = xstrcp(s);
     return n;
 }
@@ -16,8 +16,8 @@ void main()
     pq_node_ptr temp_value;
     bool all_passing = true;
     pq_instance_ptr pq = pq_init();
-    pq_enqueue_s(pq, 's', "test0");
-    pq_enqueue_s(pq, 's', "test");
+    pq_enqueue_s(pq, STRING_T, "test0");
+    pq_enqueue_s(pq, STRING_T, "test");
     temp_value = pq_dequeue(pq);
     if (type_s(temp_value) && strcmp(temp_value->data->w.s, "test0"))
     {
@@ -32,19 +32,19 @@ void main()
         all_passing = false;
         printf("Assertion #2 found an unexpected non-empty queue\n");
     }
-    pq_enqueue_s(pq, 's', "test");
-    pq_enqueue_s(pq, 's', "test");
-    pq_enqueue_s(pq, 's', "test");
-    pq_enqueue_s(pq, 's', "test");
+    pq_enqueue_s(pq, STRING_T, "test");
+    pq_enqueue_s(pq, STRING_T, "test");
+    pq_enqueue_s(pq, STRING_T, "test");
+    pq_enqueue_s(pq, STRING_T, "test");
     pq_clear(pq);
     if (!is_pq_empty(pq))
     {
         all_passing = false;
         printf("Assertion #3 found an unexpected non-empty queue\n");
     }
-    pq_enqueue_s(pq, 's', "test-a");
-    pq_enqueue_s(pq, 's', "test-b");
-    pq_enqueue_s(pq, 's', "test-c");
+    pq_enqueue_s(pq, STRING_T, "test-a");
+    pq_enqueue_s(pq, STRING_T, "test-b");
+    pq_enqueue_s(pq, STRING_T, "test-c");
     temp_value = pq_dequeue(pq);
     if (type_s(temp_value) && strcmp(temp_value->data->w.s, "test-a"))
     {

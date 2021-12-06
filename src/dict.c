@@ -9,7 +9,8 @@
    informations retrieved from a configuration file (ini files).
 */
 /*--------------------------------------------------------------------------*/
-
+// Copyright (c) 2000-2011 by Nicolas Devillard.
+// MIT License
 /*---------------------------------------------------------------------------
                                 Includes
  ---------------------------------------------------------------------------*/
@@ -399,30 +400,30 @@ void pq_display_word(pq_node_ptr node)
 {
     if (type_s(node))
     {
-        if (node->type == 's') {
+        if (node->type == STRING_T) {
             printf(" %s ", node->data->w.s);
         }
         else {
             printf(" %c%s%c ", node->type, node->data->w.s, node->type);
         }
     }
-    else if (node->type == 'b')
+    else if (node->type == BOOL_T)
     {
         printf(" %s ", node->data->w.b ? "true": "false");
     }
-    else if (node->type == 'i')
+    else if (node->type == INT_T)
     {
         printf(" %d ", node->data->w.i);
     }
-    else if (node->type == 'd')
+    else if (node->type == REAL_T)
     {
         printf(" %f ", node->data->w.d);
     }
-    else if (node->type == 'l')
+    else if (node->type == LIST_T)
     {
         pq_attendance(node->data->w.list, "");
     }
-    else if (node->type == 'f')
+    else if (node->type == IFUNC_T)
     {
         printf(" internal function ");
     }

@@ -5,9 +5,10 @@ pico_sdk_init()
 
 add_executable(pounce_repl
     src/repl/pico-repl.c
+    src/hal/pico-gpio.c
 )
 
-target_link_libraries(pounce_repl pico_stdlib hardware_i2c) # tinyusb_dev
+target_link_libraries(pounce_repl pico_stdlib hardware_i2c) # tinyusb_dev (hardware_flash hardware_sync)
 
 pico_enable_stdio_usb(pounce_repl 1)
 pico_enable_stdio_uart(pounce_repl 0)

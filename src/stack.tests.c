@@ -6,7 +6,7 @@
 
 pq_node_ptr make_string_node(char * s){
     pq_node_ptr n = pq_init_node();
-    n->type = 's';
+    n->type = STRING_T;
     n->data->w.s = xstrcp(s);
     return n;
 }

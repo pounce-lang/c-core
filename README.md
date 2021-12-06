@@ -25,7 +25,7 @@ Running this may take a few seconds since it does a simple stress test.
 `valgrind --leak-check=yes ./dist/repl`
 
 
-## rp-2040 pico (M0 micro controller) REPL 
+## build rp2040 pico (micro controller) REPL 
 `export PICO_SDK_PATH=<myRepoPath>/pico-sdk`
 
 `cd build-pico`
@@ -33,3 +33,7 @@ Running this may take a few seconds since it does a simple stress test.
 `cmake ..`
 
 `make pounce_repl`
+
+### the size of the pico image
+`objdump --all pounce_repl.elf | grep flash_binary_end`
+> this reports a memory address so subtract XIP_BASE (0x10000000) to get the size in flash.

@@ -50,7 +50,7 @@ bool ps_push_l(ps_instance_ptr ps, pq_node_ptr value)
 {
 	pq_node_ptr item = ps_init_node();
 	item->data->w.list = value;
-	item->type = 'l';
+	item->type = LIST_T;
 
 	if (ps->top == NULL)
 		ps->top = item;
@@ -66,7 +66,7 @@ bool ps_push_s(ps_instance_ptr ps, char *value)
 {
 	pq_node_ptr item = ps_init_node();
 	item->data->w.s = xstrcp(value);
-	item->type = 's';
+	item->type = STRING_T;
 
 	if (ps->top == NULL)
 		ps->top = item;
@@ -94,7 +94,7 @@ bool ps_push_b(ps_instance_ptr ps, bool value)
 {
 	pq_node_ptr item = ps_init_node();
 	item->data->w.b = value;
-	item->type = 'b';
+	item->type = BOOL_T;
 
 	if (ps->top == NULL)
 		ps->top = item;
@@ -110,7 +110,7 @@ bool ps_push_i(ps_instance_ptr ps, long value)
 {
 	pq_node_ptr item = ps_init_node();
 	item->data->w.i = value;
-	item->type = 'i';
+	item->type = INT_T;
 
 	if (ps->top == NULL)
 		ps->top = item;
@@ -126,7 +126,7 @@ bool ps_push_d(ps_instance_ptr ps, double value)
 {
 	pq_node_ptr item = ps_init_node();
 	item->data->w.d = value;
-	item->type = 'd';
+	item->type = REAL_T;
 
 	if (ps->top == NULL)
 		ps->top = item;
@@ -140,7 +140,6 @@ bool ps_push_d(ps_instance_ptr ps, double value)
 
 pq_node_ptr ps_pop(ps_instance_ptr ps)
 {
-
 	if (is_ps_empty(ps))
 	{
 		return NULL;
@@ -151,10 +150,8 @@ pq_node_ptr ps_pop(ps_instance_ptr ps)
 	return ret_val;
 }
 
-
 bool ps_clear(ps_instance_ptr ps)
 {
-
 	if (is_ps_empty(ps))
 	{
 		return false;
