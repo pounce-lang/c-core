@@ -4,8 +4,8 @@
 #include "queue.c"
 #include "dict.c"
 
-pq_node_ptr make_string_node(char * s){
-    pq_node_ptr n = pq_init_node();
+pounce_node_ptr make_string_node(char * s){
+    pounce_node_ptr n = pounce_init_node();
     n->type = STRING_T;
     n->data->w.s = xstrcp(s);
     return n;
@@ -13,87 +13,87 @@ pq_node_ptr make_string_node(char * s){
 
 void main()
 {
-    pq_node_ptr temp_value;
+    pounce_node_ptr temp_value;
     bool all_passing = true;
-    pq_instance_ptr pq = pq_init();
-    pq_enqueue_s(pq, STRING_T, "test0");
-    pq_enqueue_s(pq, STRING_T, "test");
-    temp_value = pq_dequeue(pq);
+    pounce_instance_ptr pq = pounce_init();
+    pounce_enpounce_s(pq, STRING_T, "test0");
+    pounce_enpounce_s(pq, STRING_T, "test");
+    temp_value = pounce_dequeue(pq);
     if (type_s(temp_value) && strcmp(temp_value->data->w.s, "test0"))
     {
         all_passing = false;
-        printf("Assertion #1 found [%d] an unexpected value was pq_dequeued\n", temp_value);
+        printf("Assertion #1 found [%d] an unexpected value was pounce_dequeued\n", temp_value);
     }
-    pq_free_node(temp_value);
-    temp_value = pq_dequeue(pq);
-    pq_free_node(temp_value);
-    if (!is_pq_empty(pq))
+    pounce_free_node(temp_value);
+    temp_value = pounce_dequeue(pq);
+    pounce_free_node(temp_value);
+    if (!is_pounce_empty(pq))
     {
         all_passing = false;
         printf("Assertion #2 found an unexpected non-empty queue\n");
     }
-    pq_enqueue_s(pq, STRING_T, "test");
-    pq_enqueue_s(pq, STRING_T, "test");
-    pq_enqueue_s(pq, STRING_T, "test");
-    pq_enqueue_s(pq, STRING_T, "test");
-    pq_clear(pq);
-    if (!is_pq_empty(pq))
+    pounce_enpounce_s(pq, STRING_T, "test");
+    pounce_enpounce_s(pq, STRING_T, "test");
+    pounce_enpounce_s(pq, STRING_T, "test");
+    pounce_enpounce_s(pq, STRING_T, "test");
+    pounce_clear(pq);
+    if (!is_pounce_empty(pq))
     {
         all_passing = false;
         printf("Assertion #3 found an unexpected non-empty queue\n");
     }
-    pq_enqueue_s(pq, STRING_T, "test-a");
-    pq_enqueue_s(pq, STRING_T, "test-b");
-    pq_enqueue_s(pq, STRING_T, "test-c");
-    temp_value = pq_dequeue(pq);
+    pounce_enpounce_s(pq, STRING_T, "test-a");
+    pounce_enpounce_s(pq, STRING_T, "test-b");
+    pounce_enpounce_s(pq, STRING_T, "test-c");
+    temp_value = pounce_dequeue(pq);
     if (type_s(temp_value) && strcmp(temp_value->data->w.s, "test-a"))
     {
         all_passing = false;
-        printf("Assertion #4.1 found [%d] an unexpected value was pq_dequeued\n", temp_value);
+        printf("Assertion #4.1 found [%d] an unexpected value was pounce_dequeued\n", temp_value);
     }
-    pq_free_node(temp_value);
-    temp_value = pq_dequeue(pq);
+    pounce_free_node(temp_value);
+    temp_value = pounce_dequeue(pq);
     if (type_s(temp_value) && strcmp(temp_value->data->w.s, "test-b"))
     {
         all_passing = false;
-        printf("Assertion #4.2 found [%d] an unexpected value was pq_dequeued\n", temp_value);
+        printf("Assertion #4.2 found [%d] an unexpected value was pounce_dequeued\n", temp_value);
     }
-    pq_free_node(temp_value);
+    pounce_free_node(temp_value);
     // test requeue
-    pq_requeue_s(pq, "test-z");
-    temp_value = pq_dequeue(pq);
+    pounce_repounce_s(pq, "test-z");
+    temp_value = pounce_dequeue(pq);
     if (type_s(temp_value) && strcmp(temp_value->data->w.s, "test-z"))
     {
         all_passing = false;
-        printf("Assertion #5 found [%d] an unexpected value was pq_dequeued\n", temp_value);
+        printf("Assertion #5 found [%d] an unexpected value was pounce_dequeued\n", temp_value);
     }
-    pq_free_node(temp_value);
-    pq_requeue_s(pq, "test 5");
-    pq_requeue_s(pq, "test 4");
-    temp_value = pq_dequeue(pq);
+    pounce_free_node(temp_value);
+    pounce_repounce_s(pq, "test 5");
+    pounce_repounce_s(pq, "test 4");
+    temp_value = pounce_dequeue(pq);
     if (type_s(temp_value) && strcmp(temp_value->data->w.s, "test 4"))
     {
         all_passing = false;
-        printf("Assertion #6 found [%d] an unexpected value was pq_dequeued\n", temp_value);
+        printf("Assertion #6 found [%d] an unexpected value was pounce_dequeued\n", temp_value);
     }
-    pq_free_node(temp_value);
-    temp_value = pq_dequeue(pq);
+    pounce_free_node(temp_value);
+    temp_value = pounce_dequeue(pq);
     if (type_s(temp_value) && strcmp(temp_value->data->w.s, "test 5"))
     {
         all_passing = false;
-        printf("Assertion #7 found [%d] an unexpected value was pq_dequeued\n", temp_value);
+        printf("Assertion #7 found [%d] an unexpected value was pounce_dequeued\n", temp_value);
     }
-    pq_free_node(temp_value);
+    pounce_free_node(temp_value);
     for (int t = 0; t < 5000; t++)
     {
         for (int i = 0; i < 5000; i++)
         {
-            pq_requeue_s(pq, "test-z");
+            pounce_repounce_s(pq, "test-z");
         }
         for (int i = 0; i < 5000; i++)
         {
-            temp_value = pq_dequeue(pq);
-            pq_free_node(temp_value);
+            temp_value = pounce_dequeue(pq);
+            pounce_free_node(temp_value);
         }
     }
 

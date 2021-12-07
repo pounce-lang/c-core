@@ -23,25 +23,25 @@ typedef struct word_struct
 		char *s;
 		long i;
 		double d;
-		struct pq_node *list;
-		struct pq_node *(*fun)(ps_instance_ptr, pq_instance_ptr); 
+		struct pounce_node *list;
+		struct pounce_node *(*fun)(stack_instance_ptr, pounce_instance_ptr, dictionary_ptr); 
 	} w;
 } * word_ptr;
 
-typedef struct pq_node
+typedef struct pounce_node
 {
 	char type; // (b)oolean, (s)tring, (i)nt (long), (l)ist, (f)unction (d)ouble presision float
 	word_ptr data;
-	struct pq_node *previous;
+	struct pounce_node *previous;
 
-} * pq_node_ptr;
+} * pounce_node_ptr;
 
-typedef struct ps_instance
+typedef struct stack_instance
 {
-	pq_node_ptr top; // = NULL;
-} * ps_instance_ptr;
+	pounce_node_ptr top; // = NULL;
+} * stack_instance_ptr;
 
-void pq_display_word(pq_node_ptr node);
+void pounce_display_word(pounce_node_ptr node);
 
 
 #ifdef __cplusplus

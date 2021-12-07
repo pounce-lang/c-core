@@ -15,15 +15,15 @@ void clear_input(char *s)
     }
 }
 
-void exit_pounce(ps_instance_ptr stack, dictionary *wd)
+void exit_pounce(stack_instance_ptr stack, dictionary *wd)
 {
-    ps_clear(stack);
+    stack_clear(stack);
     free(stack);
     dictionary_del(wd);
     // gpio_put(LED_PIN, 1);
     sleep_ms(1000);
     // gpio_put(LED_PIN, 0);
-    printf("exiting Pounce -\\_(*|*)_/-");
+    printf("exiting Pounce -\\_(*|*)_/-\n");
 }
 
 int main()
@@ -48,7 +48,7 @@ int main()
     short cursor_i;
     char temp[INPUT_SIZE] = {0x00};
 
-    ps_instance_ptr stack = ps_init();
+    stack_instance_ptr stack = stack_init();
     // gpio_put(LED_PIN, 1);
     sleep_ms(250);
     // gpio_put(LED_PIN, 0);
@@ -108,13 +108,15 @@ int main()
                     {
                         // right arrow
                         cursor_i++;
-                        if (cursor_i > input_i) cursor_i = input_i;
+                        if (cursor_i > input_i)
+                            cursor_i = input_i;
                     }
                     else if (input_char == 'D')
                     {
                         // left arrow
                         cursor_i--;
-                        if (cursor_i < 0) cursor_i = 0;
+                        if (cursor_i < 0)
+                            cursor_i = 0;
                     }
                     else if (input_char == '1')
                     {
@@ -128,7 +130,8 @@ int main()
                         printf("got a ctrl key ('[', '%c')\n", input_char);
                     }
                 }
-                else {
+                else
+                {
                     printf(" not a '[' escape %c ", input_char);
                     input_char = getchar();
                     printf(" -- %c\n", input_char);
@@ -154,22 +157,24 @@ int main()
             histor_i = 0;
         }
         parser_result_ptr pr = parse(0, input_program);
-
         if (pr && pr->pq)
         {
-            // gpio_put(LED_PIN, 1);
-            sleep_ms(250);
-            // gpio_put(LED_PIN, 0);
-
-            stack = purr(stack, pr->pq, wd);
-            ps_display(stack);
-
+            pounce_instance_ptr pq2 = process_compose(pr->pq, wd);
             free(pr->pq);
             free(pr);
+            if (pq2)
+            {
+                stack = purr(stack, pq2, wd);
+                stack_display(stack);
+                free(pq2);
+            }
+            else {
+                printf("failed to compose.\n");
+            }
         }
         else
         {
-            printf("failed to parse!");
+            printf("failed to parse!\n");
             return 1;
         }
         clear_input(input_program);

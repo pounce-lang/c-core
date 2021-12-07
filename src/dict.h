@@ -44,10 +44,12 @@ extern "C" {
 typedef struct _dictionary_ {
     int             n ;     /** Number of entries in dictionary */
     ssize_t         size ;  /** Storage size */
-    pq_node_ptr  *  val ;   /** List of definition values */
+    pounce_node_ptr  *  val ;   /** List of definition values */
     char        **  key ;   /** List of string keys */
     unsigned     *  hash ;  /** List of hash values for keys */
 } dictionary ;
+
+typedef dictionary * dictionary_ptr ;
 
 
 /*---------------------------------------------------------------------------
@@ -106,7 +108,7 @@ void dictionary_del(dictionary * vd);
   dictionary object, you should not try to free it or modify it.
  */
 /*--------------------------------------------------------------------------*/
-pq_node_ptr dictionary_get(const dictionary * d, const char * key, pq_node_ptr def);
+pounce_node_ptr dictionary_get(const dictionary * d, const char * key, pounce_node_ptr def);
 
 
 /*-------------------------------------------------------------------------*/
@@ -135,7 +137,7 @@ pq_node_ptr dictionary_get(const dictionary * d, const char * key, pq_node_ptr d
   This function returns non-zero in case of failure.
  */
 /*--------------------------------------------------------------------------*/
-int dictionary_set(dictionary * vd, const char * key, pq_node_ptr val);
+int dictionary_set(dictionary * vd, const char * key, pounce_node_ptr val);
 
 /*-------------------------------------------------------------------------*/
 /**
@@ -151,7 +153,7 @@ int dictionary_set(dictionary * vd, const char * key, pq_node_ptr val);
 void dictionary_unset(dictionary * d, const char * key);
 
 
-void pq_display_word(pq_node_ptr node);
+void pounce_display_word(pounce_node_ptr node);
 
 /*-------------------------------------------------------------------------*/
 /**
@@ -166,6 +168,8 @@ void pq_display_word(pq_node_ptr node);
  */
 /*--------------------------------------------------------------------------*/
 void dictionary_dump(const dictionary * d);
+
+char * dictionary_words(const dictionary *d);
 
 #ifdef __cplusplus
 }

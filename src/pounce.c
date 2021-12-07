@@ -7,70 +7,70 @@
 #include "pounce.h"
 #include "hal/gpio.h"
 
-pq_node_ptr pf_play(ps_instance_ptr s, pq_instance_ptr p);
+pounce_node_ptr pf_play(stack_instance_ptr s, pounce_instance_ptr p);
 
-void ps_display(ps_instance_ptr ps)
+void stack_display(stack_instance_ptr ps)
 {
-    if (is_ps_empty(ps))
+    if (is_stack_empty(ps))
     {
         printf("[] This stack is empty!\n");
         return;
     }
 
-    pq_node_ptr n = ps->top;
+    pounce_node_ptr n = ps->top;
 
-    pq_attendance(n, "\n ");
+    pounce_attendance(n, "\n ");
     printf("\n");
 }
 
-void pq_display(pq_instance_ptr pq)
+void pounce_display(pounce_instance_ptr pq)
 {
-    if (is_pq_empty(pq))
+    if (is_pounce_empty(pq))
     {
         printf("The queue is empty!\n");
         return;
     }
 
-    pq_node_ptr n = pq->front;
+    pounce_node_ptr n = pq->front;
 
-    pq_attendance(n, "");
+    pounce_attendance(n, "");
     printf("\n");
 }
 
-void pq_display_front(pq_instance_ptr pq)
+void pounce_display_front(pounce_instance_ptr pq)
 {
 
-    if (is_pq_empty(pq))
+    if (is_pounce_empty(pq))
     {
 
         printf("\nThe queue is empty!\n");
         return;
     }
 
-    pq_display_word(pq->front);
+    pounce_display_word(pq->front);
 }
 
-void pq_display_rear(pq_instance_ptr pq)
+void pounce_display_rear(pounce_instance_ptr pq)
 {
 
-    if (is_pq_empty(pq))
+    if (is_pounce_empty(pq))
     {
 
         printf("\nThe queue is empty!\n");
         return;
     }
 
-    pq_display_word(pq->rear);
+    pounce_display_word(pq->rear);
 };
 
 #define MAX_W_LEN 40
 #define MAX_S_LEN 4096
 typedef struct parser_result
 {
-    pq_instance_ptr pq;
+    pounce_instance_ptr pq;
     int i;
 } * parser_result_ptr;
-pq_node_ptr dup_node(pq_node_ptr e);
+pounce_node_ptr dup_node(pounce_node_ptr e);
 
 // returns INT_T for int, REAL_T for float and STRING_T for string (NaN)
 char strToNumber(long *ival, double *fval, char *s)
@@ -111,23 +111,23 @@ int save_word(int word_i, char *word, parser_result_ptr result)
         char kind = strToNumber(&intVal, &floatVal, word);
         if (kind == INT_T)
         {
-            pq_enqueue_i(result->pq, intVal);
+            pounce_enpounce_i(result->pq, intVal);
         }
         else if (kind == BOOL_T)
         {
-            pq_enqueue_b(result->pq, (bool)intVal);
+            pounce_enpounce_b(result->pq, (bool)intVal);
         }
         else if (kind == REAL_T)
         {
-            pq_enqueue_d(result->pq, floatVal);
+            pounce_enpounce_d(result->pq, floatVal);
         }
         else if (kind == STRING_T)
         {
-            pq_enqueue_s(result->pq, STRING_T, word);
+            pounce_enpounce_s(result->pq, STRING_T, word);
         }
         else
         {
-            printf("save_word got bad value from strToNumber");
+            printf("save_word got bad value from strToNumber\n");
         }
         word[0] = 0;
         word_i = 0;
@@ -154,7 +154,7 @@ parser_result_ptr parse(int i, const char *pt)
         return NULL;
     }
 
-    result->pq = pq_init();
+    result->pq = pounce_init();
     if (!result->pq)
     {
         printf("could not malloc pq\n");
@@ -187,7 +187,7 @@ parser_result_ptr parse(int i, const char *pt)
             {
                 str[str_i - 1] = 0; // null terminate the string r_trim
 
-                pq_enqueue_s(result->pq, str[0], &str[1]); //and l_trim
+                pounce_enpounce_s(result->pq, str[0], &str[1]); //and l_trim
                 str[0] = 0;
                 str_i = 0;
             }
@@ -199,7 +199,7 @@ parser_result_ptr parse(int i, const char *pt)
             i++;
             parser_result_ptr pr = parse(i, pt);
             i = pr->i;
-            pq_enqueue_l(result->pq, pr->pq->front);
+            pounce_enpounce_l(result->pq, pr->pq->front);
             free(pr->pq);
             free(pr);
         }
@@ -235,78 +235,83 @@ parser_result_ptr parse(int i, const char *pt)
 };
 
 
-ps_instance_ptr process_compose(pq_instance_ptr p, dictionary *d)
+pounce_instance_ptr process_compose(pounce_instance_ptr p, dictionary *d)
 {
-    pq_instance_ptr result_pq;
-    pq_init(result_pq);
-    while (!is_pq_empty(p))
+    pounce_instance_ptr result_pq = pounce_init();
+    int i = 0;
+    while (!is_pounce_empty(p))
     {
-        pq_node_ptr w = pq_dequeue(p);
-        if (w->type == STRING_T && strcmp(w->data->w.s, "compose")) {
-            pq_node_ptr phrase = pq_popback(result_pq);
-            pq_node_ptr new_word = pq_popback(result_pq);
+        i++;
+        pounce_node_ptr w = pounce_dequeue(p);
+        if (w->type == STRING_T && strcmp(w->data->w.s, "compose") == 0) {
+            pounce_node_ptr phrase = pounce_popout(result_pq);
+            pounce_node_ptr new_word = pounce_popout(result_pq);
+
             // check on these two ingredients
             if (phrase && phrase->type == LIST_T && new_word && new_word->type == LIST_T) {
                 // process the composition
+                dictionary_set(d, new_word->data->w.list->data->w.s, phrase);
             }
             else {
-                // this is bad
+                // type parsing error
+                printf("Stack error in compose.\n");
             }
 
         }
         else {
-            pq_enqueue(result_pq, w);
+            pounce_enqueue(result_pq, w);
         }
     }
+    return result_pq;
 };
 
-ps_instance_ptr purr(ps_instance_ptr s, pq_instance_ptr p, dictionary *d)
+stack_instance_ptr purr(stack_instance_ptr s, pounce_instance_ptr p, dictionary *d)
 {
-    while (!is_pq_empty(p))
+    while (!is_pounce_empty(p))
     {
-        pq_node_ptr w = pq_dequeue(p);
-        // pq_display_word(w);
+        pounce_node_ptr w = pounce_dequeue(p);
+        // pounce_display_word(w);
         if (w && type_s(w))
         {
-            pq_node_ptr w_def = dictionary_get(d, w->data->w.s, NULL);
+            pounce_node_ptr w_def = dictionary_get(d, w->data->w.s, NULL);
             if (w_def)
             {
-                pq_free_node(w);
+                pounce_free_node(w);
                 if (type_s(w_def))
                 {
-                    ps_push_s(s, w_def->data->w.s);
+                    stack_push_s(s, w_def->data->w.s);
                 }
                 else if (w_def->type == BOOL_T)
                 {
-                    ps_push_b(s, w_def->data->w.b);
+                    stack_push_b(s, w_def->data->w.b);
                 }
                 else if (w_def->type == INT_T)
                 {
-                    ps_push_i(s, w_def->data->w.i);
+                    stack_push_i(s, w_def->data->w.i);
                 }
                 else if (w_def->type == REAL_T)
                 {
-                    ps_push_d(s, w_def->data->w.d);
+                    stack_push_d(s, w_def->data->w.d);
                 }
                 else if (w_def->type == LIST_T)
                 {
-                    ps_push_l(s, dup_node(w_def)->data->w.list);
-                    pq_requeue_s(p, "play");
+                    stack_push_l(s, dup_node(w_def)->data->w.list);
+                    pounce_repounce_s(p, "play");
                 }
                 else if (w_def->type == IFUNC_T)
                 {
-                    pq_node_ptr res = w_def->data->w.fun(s, p);
+                    pounce_node_ptr res = w_def->data->w.fun(s, p, d);
                     if (!res)
                     {
                         // OK NULL means nothing to add to the stack
                     }
                     else if (res->type != LIST_T)
                     {
-                        ps_push_node(s, res);
+                        stack_push_node(s, res);
                     }
                     else if (res->type == LIST_T)
                     {
-                        ps_push_l(s, res->data->w.list);
+                        stack_push_l(s, res->data->w.list);
                     }
                     else
                     {
@@ -320,27 +325,27 @@ ps_instance_ptr purr(ps_instance_ptr s, pq_instance_ptr p, dictionary *d)
             }
             else
             {
-                ps_push_node(s, w);
+                stack_push_node(s, w);
             }
         }
         else
         {
-            ps_push_node(s, w);
+            stack_push_node(s, w);
         }
     }
     return s;
 };
 
-pq_node_ptr make_string_node(char t, char *s)
+pounce_node_ptr make_string_node(char t, char *s)
 {
-    pq_node_ptr n = pq_init_node();
+    pounce_node_ptr n = pounce_init_node();
     n->type = t;
     n->data->w.s = xstrcp(s);
     return n;
 }
-pq_node_ptr make_list_node(char *s)
+pounce_node_ptr make_list_node(char *s)
 {
-    pq_node_ptr n = pq_init_node();
+    pounce_node_ptr n = pounce_init_node();
     n->type = LIST_T;
     parser_result_ptr pr = parse(0, s);
     n->data->w.list = pr->pq->front;
@@ -348,30 +353,37 @@ pq_node_ptr make_list_node(char *s)
     free(pr);
     return n;
 }
-pq_node_ptr make_fun_node(pq_node_ptr (*fun)(ps_instance_ptr, pq_instance_ptr))
+pounce_node_ptr make_fun_node_introspect(pounce_node_ptr (*fun)(stack_instance_ptr, pounce_instance_ptr, dictionary_ptr))
 {
-    pq_node_ptr n = pq_init_node();
+    pounce_node_ptr n = pounce_init_node();
     n->type = IFUNC_T;
     n->data->w.fun = fun;
     return n;
 }
-pq_node_ptr make_boolean_node(bool b)
+pounce_node_ptr make_fun_node(pounce_node_ptr (*fun)(stack_instance_ptr, pounce_instance_ptr))
 {
-    pq_node_ptr n = pq_init_node();
+    pounce_node_ptr n = pounce_init_node();
+    n->type = IFUNC_T;
+    n->data->w.fun = fun;
+    return n;
+}
+pounce_node_ptr make_boolean_node(bool b)
+{
+    pounce_node_ptr n = pounce_init_node();
     n->type = BOOL_T;
     n->data->w.b = b;
     return n;
 }
-pq_node_ptr make_integer_node(long i)
+pounce_node_ptr make_integer_node(long i)
 {
-    pq_node_ptr n = pq_init_node();
+    pounce_node_ptr n = pounce_init_node();
     n->type = INT_T;
     n->data->w.i = i;
     return n;
 }
-pq_node_ptr make_double_node(double d)
+pounce_node_ptr make_double_node(double d)
 {
-    pq_node_ptr n = pq_init_node();
+    pounce_node_ptr n = pounce_init_node();
     n->type = REAL_T;
     n->data->w.d = d;
     return n;
@@ -381,12 +393,12 @@ char min_char(char num1, char num2)
     return (num1 > num2) ? num2 : num1;
 }
 
-pq_node_ptr pf_strAppend(ps_instance_ptr s, pq_instance_ptr p)
+pounce_node_ptr pf_strAppend(stack_instance_ptr s, pounce_instance_ptr p)
 {
-    pq_node_ptr a = ps_pop(s);
+    pounce_node_ptr a = stack_pop(s);
     if (a && type_s(a))
     {
-        pq_node_ptr b = ps_pop(s);
+        pounce_node_ptr b = stack_pop(s);
         if (b && type_s(b))
         {
             char *result;
@@ -399,9 +411,9 @@ pq_node_ptr pf_strAppend(ps_instance_ptr s, pq_instance_ptr p)
                 strcpy(result, b->data->w.s);
             }
             strcat(result, a->data->w.s);
-            pq_node_ptr n = make_string_node(min_char(a->type, b->type), result);
-            pq_free_node(a);
-            pq_free_node(b);
+            pounce_node_ptr n = make_string_node(min_char(a->type, b->type), result);
+            pounce_free_node(a);
+            pounce_free_node(b);
             free(result);
             return n;
         }
@@ -410,109 +422,109 @@ pq_node_ptr pf_strAppend(ps_instance_ptr s, pq_instance_ptr p)
             fprintf(stderr, "strAppend encountered a non string at top(-1) of stack\n");
         }
         if (b)
-            pq_free_node(b);
+            pounce_free_node(b);
     }
     else
     {
         fprintf(stderr, "strAppend encountered a non string at top of stack\n");
     }
     if (a)
-        pq_free_node(a);
+        pounce_free_node(a);
     return NULL;
 };
 
-pq_node_ptr pf_boolOr(ps_instance_ptr s, pq_instance_ptr p)
+pounce_node_ptr pf_boolOr(stack_instance_ptr s, pounce_instance_ptr p)
 {
-    // ps_display(s);
-    pq_node_ptr a = ps_pop(s);
+    // stack_display(s);
+    pounce_node_ptr a = stack_pop(s);
     if (a && a->type == BOOL_T)
     {
-        pq_node_ptr b = ps_pop(s);
+        pounce_node_ptr b = stack_pop(s);
         if (b && b->type == BOOL_T)
         {
             long result = b->data->w.b || a->data->w.b;
-            pq_free_node(a);
-            pq_free_node(b);
+            pounce_free_node(a);
+            pounce_free_node(b);
             return make_boolean_node(result);
         }
         else
         {
             printf("'||' expected top(-1) to be boolean, but got type %c instead\n", b->type);
         }
-        pq_free_node(b);
+        pounce_free_node(b);
     }
     else
     {
         printf("'||' expected top to be a Boolean, but got type %c instead\n", a->type);
     }
-    pq_free_node(a);
+    pounce_free_node(a);
     return NULL;
 };
-pq_node_ptr pf_boolAnd(ps_instance_ptr s, pq_instance_ptr p)
+pounce_node_ptr pf_boolAnd(stack_instance_ptr s, pounce_instance_ptr p)
 {
-    // ps_display(s);
-    pq_node_ptr a = ps_pop(s);
+    // stack_display(s);
+    pounce_node_ptr a = stack_pop(s);
     if (a && a->type == BOOL_T)
     {
-        pq_node_ptr b = ps_pop(s);
+        pounce_node_ptr b = stack_pop(s);
         if (b && b->type == BOOL_T)
         {
             long result = b->data->w.b && a->data->w.b;
-            pq_free_node(a);
-            pq_free_node(b);
+            pounce_free_node(a);
+            pounce_free_node(b);
             return make_boolean_node(result);
         }
         else
         {
             printf("'&&' expected top(-1) to be Boolean, but got type %c instead\n", b->type);
         }
-        pq_free_node(b);
+        pounce_free_node(b);
     }
     else
     {
         printf("'&&' expected top to be a Boolean, but got type %c instead\n", a->type);
     }
-    pq_free_node(a);
+    pounce_free_node(a);
     return NULL;
 };
-pq_node_ptr pf_boolNot(ps_instance_ptr s, pq_instance_ptr p)
+pounce_node_ptr pf_boolNot(stack_instance_ptr s, pounce_instance_ptr p)
 {
-    // ps_display(s);
-    pq_node_ptr a = ps_pop(s);
+    // stack_display(s);
+    pounce_node_ptr a = stack_pop(s);
     if (a && a->type == BOOL_T)
     {
         long result = !a->data->w.b;
-        pq_free_node(a);
+        pounce_free_node(a);
         return make_boolean_node(result);
     }
     else
     {
         printf("'!' expected the item at the top of the stack to be boolean, but got type %c instead\n", a->type);
     }
-    pq_free_node(a);
+    pounce_free_node(a);
     return NULL;
 };
-pq_node_ptr pf_numAdd(ps_instance_ptr s, pq_instance_ptr p)
+pounce_node_ptr pf_numAdd(stack_instance_ptr s, pounce_instance_ptr p)
 {
-    // ps_display(s);
-    pq_node_ptr a = ps_pop(s);
+    // stack_display(s);
+    pounce_node_ptr a = stack_pop(s);
     if (a && (a->type == INT_T || a->type == REAL_T))
     {
-        pq_node_ptr b = ps_pop(s);
+        pounce_node_ptr b = stack_pop(s);
         if (b && (b->type == INT_T || b->type == REAL_T))
         {
             if (a->type == INT_T && b->type == INT_T)
             {
                 long sum = b->data->w.i + a->data->w.i;
-                pq_free_node(a);
-                pq_free_node(b);
+                pounce_free_node(a);
+                pounce_free_node(b);
                 return make_integer_node(sum);
             }
             else if (a->type == REAL_T && b->type == REAL_T)
             {
                 double sum = b->data->w.d + a->data->w.d;
-                pq_free_node(a);
-                pq_free_node(b);
+                pounce_free_node(a);
+                pounce_free_node(b);
                 return make_double_node(sum);
             }
             else
@@ -524,36 +536,36 @@ pq_node_ptr pf_numAdd(ps_instance_ptr s, pq_instance_ptr p)
         {
             printf("add expected top(-1) to be integer, but got type %c instead\n", b->type);
         }
-        pq_free_node(b);
+        pounce_free_node(b);
     }
     else
     {
         printf("add expected top to be integer, but got type %c instead\n", a->type);
     }
-    pq_free_node(a);
+    pounce_free_node(a);
     return NULL;
 };
-pq_node_ptr pf_numSubtract(ps_instance_ptr s, pq_instance_ptr p)
+pounce_node_ptr pf_numSubtract(stack_instance_ptr s, pounce_instance_ptr p)
 {
-    // ps_display(s);
-    pq_node_ptr a = ps_pop(s);
+    // stack_display(s);
+    pounce_node_ptr a = stack_pop(s);
     if (a && (a->type == INT_T || a->type == REAL_T))
     {
-        pq_node_ptr b = ps_pop(s);
+        pounce_node_ptr b = stack_pop(s);
         if (b && (b->type == INT_T || b->type == REAL_T))
         {
             if (a->type == INT_T && b->type == INT_T)
             {
                 long sum = b->data->w.i - a->data->w.i;
-                pq_free_node(a);
-                pq_free_node(b);
+                pounce_free_node(a);
+                pounce_free_node(b);
                 return make_integer_node(sum);
             }
             else if (a->type == REAL_T && b->type == REAL_T)
             {
                 double sum = b->data->w.d - a->data->w.d;
-                pq_free_node(a);
-                pq_free_node(b);
+                pounce_free_node(a);
+                pounce_free_node(b);
                 return make_double_node(sum);
             }
             else
@@ -565,26 +577,26 @@ pq_node_ptr pf_numSubtract(ps_instance_ptr s, pq_instance_ptr p)
         {
             printf("subtract expected top(-1) to be integer, but got type %c instead\n", b->type);
         }
-        pq_free_node(b);
+        pounce_free_node(b);
     }
     else
     {
         printf("subtract expected top to be integer, but got type %c instead\n", a->type);
     }
-    pq_free_node(a);
+    pounce_free_node(a);
     return NULL;
 };
-pq_node_ptr pf_numMult(ps_instance_ptr s, pq_instance_ptr p)
+pounce_node_ptr pf_numMult(stack_instance_ptr s, pounce_instance_ptr p)
 {
-    pq_node_ptr a = ps_pop(s);
+    pounce_node_ptr a = stack_pop(s);
     if (a == NULL)
         return NULL;
     if (a->type == INT_T || a->type == REAL_T)
     {
-        pq_node_ptr b = ps_pop(s);
+        pounce_node_ptr b = stack_pop(s);
         if (b == NULL)
         {
-            ps_push_node(s, a);
+            stack_push_node(s, a);
             return NULL;
         }
         if (b->type == INT_T || b->type == REAL_T)
@@ -592,73 +604,73 @@ pq_node_ptr pf_numMult(ps_instance_ptr s, pq_instance_ptr p)
             if (a->type == INT_T && b->type == INT_T)
             {
                 long prod = b->data->w.i * a->data->w.i;
-                pq_free_node(a);
-                pq_free_node(b);
+                pounce_free_node(a);
+                pounce_free_node(b);
                 return make_integer_node(prod);
             }
             else if (a->type == REAL_T && b->type == REAL_T)
             {
                 double prod = b->data->w.d * a->data->w.d;
-                pq_free_node(a);
-                pq_free_node(b);
+                pounce_free_node(a);
+                pounce_free_node(b);
                 return make_double_node(prod);
             }
             else
             {
                 printf("numMult both args to be integer or both to be floating point, but got a mix\n");
-                ps_push_node(s, b);
-                ps_push_node(s, a);
+                stack_push_node(s, b);
+                stack_push_node(s, a);
                 return NULL;
             }
         }
         else
         {
             printf("numMult expected top(-1) to be a number, but got type %c instead\n", b->type);
-            ps_push_node(s, b);
-            ps_push_node(s, a);
+            stack_push_node(s, b);
+            stack_push_node(s, a);
             return NULL;
         }
     }
     else
     {
         printf("numMult expected top to be a number, but got type %c instead\n", a->type);
-        ps_push_node(s, a);
+        stack_push_node(s, a);
         return NULL;
     }
 };
-pq_node_ptr pf_numDivide(ps_instance_ptr s, pq_instance_ptr p)
+pounce_node_ptr pf_numDivide(stack_instance_ptr s, pounce_instance_ptr p)
 {
-    pq_node_ptr a = ps_pop(s);
+    pounce_node_ptr a = stack_pop(s);
     if (a && (a->type == INT_T || a->type == REAL_T))
     {
-        pq_node_ptr b = ps_pop(s);
+        pounce_node_ptr b = stack_pop(s);
         if (b && (b->type == INT_T || b->type == REAL_T))
         {
             if (a->type == INT_T && b->type == INT_T)
             {
                 long prod = b->data->w.i / a->data->w.i;
-                pq_free_node(a);
-                pq_free_node(b);
+                pounce_free_node(a);
+                pounce_free_node(b);
                 return make_integer_node(prod);
             }
             else if (a->type == REAL_T && b->type == REAL_T)
             {
                 double prod = b->data->w.d / a->data->w.d;
-                pq_free_node(a);
-                pq_free_node(b);
+                pounce_free_node(a);
+                pounce_free_node(b);
                 return make_double_node(prod);
             }
             else
             {
                 printf("numDivide both args to be integer or both to be floating point, but got a mix\n");
             }
-            pq_free_node(b);
+            pounce_free_node(b);
         }
         else
         {
             printf("numDivide expected top(-1) to be integer, but got type %c instead\n", b->type);
         }
-        pq_free_node(a);
+        pounce_free_node(a);
     }
     else
     {
@@ -667,12 +679,12 @@ pq_node_ptr pf_numDivide(ps_instance_ptr s, pq_instance_ptr p)
     return NULL;
 };
 
-pq_node_ptr pf_swap(ps_instance_ptr s, pq_instance_ptr p)
+pounce_node_ptr pf_swap(stack_instance_ptr s, pounce_instance_ptr p)
 {
-    pq_node_ptr new_second = s->top;
+    pounce_node_ptr new_second = s->top;
     if (new_second)
     {
-        pq_node_ptr new_top = s->top->previous;
+        pounce_node_ptr new_top = s->top->previous;
         if (new_top)
         {
             new_second->previous = new_top->previous;
@@ -691,30 +703,30 @@ pq_node_ptr pf_swap(ps_instance_ptr s, pq_instance_ptr p)
     return NULL;
 };
 
-pq_node_ptr pf_drop(ps_instance_ptr s, pq_instance_ptr p)
+pounce_node_ptr pf_drop(stack_instance_ptr s, pounce_instance_ptr p)
 {
-    pq_node_ptr ele = ps_pop(s);
+    pounce_node_ptr ele = stack_pop(s);
     if (!ele)
     {
         printf("'drop' expected an element at the top of the stack, but it was empty\n");
     }
     else
     {
-        pq_free_node(ele);
+        pounce_free_node(ele);
     }
     return NULL;
 };
 // size of list
-pq_node_ptr pf_size(ps_instance_ptr s, pq_instance_ptr p)
+pounce_node_ptr pf_size(stack_instance_ptr s, pounce_instance_ptr p)
 {
-    pq_node_ptr e = s->top;
+    pounce_node_ptr e = s->top;
     if (!e || e->type != LIST_T)
     {
         printf("'size' expected a list at the top of the stack\n");
         return NULL;
     }
     long c = 0;
-    pq_node_ptr l = e->data->w.list;
+    pounce_node_ptr l = e->data->w.list;
     while (l)
     {
         c++;
@@ -724,7 +736,7 @@ pq_node_ptr pf_size(ps_instance_ptr s, pq_instance_ptr p)
 };
 
 // duplicate a node, recursive for lists
-pq_node_ptr dup_node(pq_node_ptr e)
+pounce_node_ptr dup_node(pounce_node_ptr e)
 {
     if (!e)
         return NULL;
@@ -738,11 +750,11 @@ pq_node_ptr dup_node(pq_node_ptr e)
         return make_double_node(e->data->w.d);
     if (e->type == LIST_T)
     {
-        pq_node_ptr l = e->data->w.list;
-        pq_node_ptr new_l = pq_init_node();
+        pounce_node_ptr l = e->data->w.list;
+        pounce_node_ptr new_l = pounce_init_node();
         new_l->type = LIST_T;
         new_l->data->w.list = NULL;
-        pq_node_ptr cur, head = NULL;
+        pounce_node_ptr cur, head = NULL;
         if (l)
         {
             cur = head = dup_node(l);
@@ -761,9 +773,9 @@ pq_node_ptr dup_node(pq_node_ptr e)
 }
 
 // pounce (internal word) function
-pq_node_ptr pf_dup(ps_instance_ptr s, pq_instance_ptr p)
+pounce_node_ptr pf_dup(stack_instance_ptr s, pounce_instance_ptr p)
 {
-    pq_node_ptr e = s->top;
+    pounce_node_ptr e = s->top;
     if (!e)
     {
         printf("'dup' expected an element at the top of the stack\n");
@@ -771,12 +783,12 @@ pq_node_ptr pf_dup(ps_instance_ptr s, pq_instance_ptr p)
     }
     return dup_node(e);
 };
-pq_node_ptr pf_cons(ps_instance_ptr s, pq_instance_ptr p)
+pounce_node_ptr pf_cons(stack_instance_ptr s, pounce_instance_ptr p)
 {
-    pq_node_ptr list = s->top;
+    pounce_node_ptr list = s->top;
     if (list && list->type == LIST_T)
     {
-        pq_node_ptr ele = s->top->previous;
+        pounce_node_ptr ele = s->top->previous;
         if (ele)
         {
             list->previous = ele->previous;
@@ -794,16 +806,16 @@ pq_node_ptr pf_cons(ps_instance_ptr s, pq_instance_ptr p)
     }
     return NULL;
 };
-pq_node_ptr pf_uncons(ps_instance_ptr s, pq_instance_ptr p)
+pounce_node_ptr pf_uncons(stack_instance_ptr s, pounce_instance_ptr p)
 {
-    pq_node_ptr e = s->top;
+    pounce_node_ptr e = s->top;
     if (!e || e->type != LIST_T)
     {
         printf("'uncons' expected a list at the top of the stack\n");
         return NULL;
     }
-    pq_node_ptr l = e->data->w.list;
-    pq_node_ptr first;
+    pounce_node_ptr l = e->data->w.list;
+    pounce_node_ptr first;
     if (l)
     {
         first = l;
@@ -818,24 +830,23 @@ pq_node_ptr pf_uncons(ps_instance_ptr s, pq_instance_ptr p)
     return NULL;
 };
 
-pq_node_ptr pf_gpioInit(ps_instance_ptr s, pq_instance_ptr p)
+pounce_node_ptr pf_gpioInit(stack_instance_ptr s, pounce_instance_ptr p)
 {
-    pq_node_ptr a = ps_pop(s);
+    pounce_node_ptr a = stack_pop(s);
     if (a && a->type == STRING_T)
     {
-        pq_node_ptr b = ps_pop(s);
+        pounce_node_ptr b = stack_pop(s);
         if (b && b->type == INT_T)
         {
             bool out_dir = (strcmp(a->data->w.s, "OUT") == 0);
-            printf("out_dir = %d", out_dir);
             init_gpio(b->data->w.i, out_dir, 0);
-            pq_free_node(b);
+            pounce_free_node(b);
         }
         else
         {
             printf("gpioInit expected top(-1) to be integer, but got type %c instead\n", b->type);
         }
-        pq_free_node(a);
+        pounce_free_node(a);
     }
     else
     {
@@ -844,24 +855,24 @@ pq_node_ptr pf_gpioInit(ps_instance_ptr s, pq_instance_ptr p)
     return NULL;
 };
 
-pq_node_ptr pf_gpioSet(ps_instance_ptr s, pq_instance_ptr p)
+pounce_node_ptr pf_gpioSet(stack_instance_ptr s, pounce_instance_ptr p)
 {
-    // ps_display(s);
-    pq_node_ptr a = ps_pop(s);
+    // stack_display(s);
+    pounce_node_ptr a = stack_pop(s);
     if (a && a->type == STRING_T)
     {
-        pq_node_ptr pin = ps_pop(s);
+        pounce_node_ptr pin = stack_pop(s);
         if (pin && pin->type == INT_T)
         {
             bool val = (strcmp(a->data->w.s, "HIGH") == 0);
             set_gpio(pin->data->w.i, val);
-            pq_free_node(pin);
+            pounce_free_node(pin);
         }
         else
         {
             printf("gpioSet expected top(-1) to be integer, but got type %c instead\n", pin->type);
         }
-        pq_free_node(a);
+        pounce_free_node(a);
     }
     else
     {
@@ -872,10 +883,10 @@ pq_node_ptr pf_gpioSet(ps_instance_ptr s, pq_instance_ptr p)
 };
 
 
-pq_node_ptr reverse_copy(pq_node_ptr l)
+pounce_node_ptr reverse_copy(pounce_node_ptr l)
 {
-    pq_node_ptr rev;
-    pq_node_ptr link = NULL;
+    pounce_node_ptr rev;
+    pounce_node_ptr link = NULL;
     while (l)
     {
         rev = dup_node(l);
@@ -886,59 +897,59 @@ pq_node_ptr reverse_copy(pq_node_ptr l)
     return rev;
 }
 
-pq_node_ptr pf_play(ps_instance_ptr s, pq_instance_ptr p)
+pounce_node_ptr pf_play(stack_instance_ptr s, pounce_instance_ptr p)
 {
-    pq_node_ptr phrase = ps_pop(s);
+    pounce_node_ptr phrase = stack_pop(s);
     if (!phrase || phrase->type != LIST_T)
     {
         printf("'play' expected a list at the top of the stack\n");
         return NULL;
     }
-    pq_node_ptr l = phrase->data->w.list;
-    pq_node_ptr rev = reverse_copy(l);
+    pounce_node_ptr l = phrase->data->w.list;
+    pounce_node_ptr rev = reverse_copy(l);
     while (rev)
     {
         l = rev->previous;
-        pq_requeue(p, rev);
+        pounce_requeue(p, rev);
         rev = l;
     }
-    pq_free_node(phrase);
+    pounce_free_node(phrase);
     return NULL;
 };
 
-pq_node_ptr pf_dip(ps_instance_ptr s, pq_instance_ptr p)
+pounce_node_ptr pf_dip(stack_instance_ptr s, pounce_instance_ptr p)
 {
-    pq_node_ptr e = ps_pop(s);
-    pq_node_ptr t = ps_pop(s);
+    pounce_node_ptr e = stack_pop(s);
+    pounce_node_ptr t = stack_pop(s);
     if (!e || e->type != LIST_T)
     {
         printf("'dip' expected a list at the top of the stack\n");
         return NULL;
     }
-    pq_requeue(p, t);
-    pq_node_ptr l = e->data->w.list;
-    pq_node_ptr rev = reverse_copy(l);
+    pounce_requeue(p, t);
+    pounce_node_ptr l = e->data->w.list;
+    pounce_node_ptr rev = reverse_copy(l);
     while (rev)
     {
         l = rev->previous;
-        pq_requeue(p, rev);
+        pounce_requeue(p, rev);
         rev = l;
     }
-    pq_free_node(e);
+    pounce_free_node(e);
     return NULL;
 };
 
-pq_node_ptr pf_numGt(ps_instance_ptr s, pq_instance_ptr p)
+pounce_node_ptr pf_numGt(stack_instance_ptr s, pounce_instance_ptr p)
 {
-    pq_node_ptr a = ps_pop(s);
+    pounce_node_ptr a = stack_pop(s);
     if (a == NULL)
         return NULL;
     if (a->type == INT_T || a->type == REAL_T)
     {
-        pq_node_ptr b = ps_pop(s);
+        pounce_node_ptr b = stack_pop(s);
         if (b == NULL)
         {
-            ps_push_node(s, a);
+            stack_push_node(s, a);
             return NULL;
         }
         if (b->type == INT_T || b->type == REAL_T)
@@ -946,39 +957,46 @@ pq_node_ptr pf_numGt(ps_instance_ptr s, pq_instance_ptr p)
             if (a->type == INT_T && b->type == INT_T)
             {
                 bool prod = (b->data->w.i > a->data->w.i);
-                pq_free_node(a);
-                pq_free_node(b);
+                pounce_free_node(a);
+                pounce_free_node(b);
                 return make_boolean_node(prod);
             }
             else if (a->type == REAL_T && b->type == REAL_T)
             {
                 bool prod = (b->data->w.d > a->data->w.d);
-                pq_free_node(a);
-                pq_free_node(b);
+                pounce_free_node(a);
+                pounce_free_node(b);
                 return make_boolean_node(prod);
             }
             else
             {
                 printf("'>' both args to be integer or both to be floating point, but got a mix\n");
-                ps_push_node(s, b);
-                ps_push_node(s, a);
+                stack_push_node(s, b);
+                stack_push_node(s, a);
                 return NULL;
             }
         }
         else
         {
             printf("'>' expected top(-1) to be a number, but got type %c instead\n", b->type);
-            ps_push_node(s, b);
-            ps_push_node(s, a);
+            stack_push_node(s, b);
+            stack_push_node(s, a);
             return NULL;
         }
     }
     else
     {
         printf("'>' expected top to be a number, but got type %c instead\n", a->type);
-        ps_push_node(s, a);
+        stack_push_node(s, a);
         return NULL;
     }
+};
+
+pounce_node_ptr pf_words(stack_instance_ptr s, pounce_instance_ptr p, dictionary *d)
+{
+    pounce_node_ptr n = make_string_node(STRING_T, dictionary_words(d));
+    stack_push_node(s, n);
+    return NULL;
 };
 
 dictionary *init_core_word_dictionary()
@@ -1011,6 +1029,7 @@ dictionary *init_core_word_dictionary()
     // dictionary_set(wd, "split", make_fun_node(pf_arrSplit));
     // dictionary_set(wd, "concat", make_fun_node(pf_arrConcat));
     // dictionary_set(wd, "binrec", make_fun_node(pf_binrec));
+    dictionary_set(wd, "words", make_fun_node_introspect(pf_words));
     dictionary_set(wd, "gpioInit", make_fun_node(pf_gpioInit));
     dictionary_set(wd, "gpioSet", make_fun_node(pf_gpioSet));
     

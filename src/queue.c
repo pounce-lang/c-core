@@ -4,20 +4,20 @@
 #include <stdbool.h>
 #include "pounce.h"
 
-/* A dequeue (or double ended) implementation.
+/* A dequeue (double ended) implementation.
  * Standard Queue methods are: 
- *  pq_enqueue() puts an element at the rear of the queue.
- *  pq_dequeue() pulls out the first element at the front of the queue.
+ *  pounce_enqueue() puts an element at the rear of the queue.
+ *  pounce_dequeue() pulls out the first element at the front of the queue.
  * Less standard methods are:
- *  pq_requeue() puts an element into the front of the queue.
- *  pq_popback() pulls the last element off of the rear of the queue.
+ *  pounce_requeue() puts an element into the front of the queue.
+ *  pounce_popout() pulls the last element off of the rear of the queue.
  */
 
-typedef struct pq_instance
+typedef struct pounce_instance
 {
-	pq_node_ptr front; // = NULL;
-	pq_node_ptr rear;  // = NULL;
-} * pq_instance_ptr;
+	pounce_node_ptr front; // = NULL;
+	pounce_node_ptr rear;  // = NULL;
+} * pounce_instance_ptr;
 
 static char *xstrcp(const char *s)
 {
@@ -47,9 +47,9 @@ word_ptr word_init()
 	// printf("returning new word %d\n", &new_word);
 	return new_word;
 };
-pq_node_ptr pq_init_node()
+pounce_node_ptr pounce_init_node()
 {
-	pq_node_ptr item = (pq_node_ptr)malloc(sizeof(struct pq_node));
+	pounce_node_ptr item = (pounce_node_ptr)malloc(sizeof(struct pounce_node));
 	if (item == NULL)
 	{
 		return false;
@@ -64,18 +64,18 @@ pq_node_ptr pq_init_node()
 	return item;
 };
 
-void pq_free_node(pq_node_ptr node);
+void pounce_free_node(pounce_node_ptr node);
 
-void pq_free_list(pq_node_ptr le) {
-	pq_node_ptr next;
+void pounce_free_list(pounce_node_ptr le) {
+	pounce_node_ptr next;
 	while(le) {
 		next = le->previous;
-		pq_free_node(le);
+		pounce_free_node(le);
 		le = next;
 	}
 };
 
-void pq_free_node(pq_node_ptr node)
+void pounce_free_node(pounce_node_ptr node)
 {
 	if (type_s(node))
 	{
@@ -83,7 +83,7 @@ void pq_free_node(pq_node_ptr node)
 	}
 	if (node->type == LIST_T)
 	{
-		pq_free_list(node->data->w.list);
+		pounce_free_list(node->data->w.list);
 	}
 	// if (node->type == IFUNC_T)
 	// {
@@ -93,9 +93,9 @@ void pq_free_node(pq_node_ptr node)
 	free(node);
 }
 
-pq_instance_ptr pq_init()
+pounce_instance_ptr pounce_init()
 {
-	pq_instance_ptr new_pq = (pq_instance_ptr)malloc(sizeof(struct pq_instance));
+	pounce_instance_ptr new_pq = (pounce_instance_ptr)malloc(sizeof(struct pounce_instance));
 
 	if (new_pq == NULL)
 	{
@@ -108,19 +108,19 @@ pq_instance_ptr pq_init()
 	return new_pq;
 };
 
-// bool pq_delete(pq_instance_ptr old_pq)
+// bool pounce_delete(pounce_instance_ptr old_pq)
 // {
 // 	return false;
 // };
 
-bool is_pq_empty(pq_instance_ptr pq)
+bool is_pounce_empty(pounce_instance_ptr pq)
 {
 	return (pq->front == NULL || pq->rear == NULL);
 }
 
-bool pq_requeue_s(pq_instance_ptr pq, char *value)
+bool pounce_repounce_s(pounce_instance_ptr pq, char *value)
 {
-	pq_node_ptr item = pq_init_node();
+	pounce_node_ptr item = pounce_init_node();
 	if (!item)
 	{
 		return false;
@@ -141,7 +141,7 @@ bool pq_requeue_s(pq_instance_ptr pq, char *value)
 	}
 	return true;
 }
-bool pq_requeue(pq_instance_ptr pq, pq_node_ptr item)
+bool pounce_requeue(pounce_instance_ptr pq, pounce_node_ptr item)
 {
 	if (!item)
 	{
@@ -160,7 +160,7 @@ bool pq_requeue(pq_instance_ptr pq, pq_node_ptr item)
 	return true;
 }
 
-bool pq_enqueue(pq_instance_ptr pq, pq_node_ptr item)
+bool pounce_enqueue(pounce_instance_ptr pq, pounce_node_ptr item)
 {
 	if (!item)
 	{
@@ -177,9 +177,9 @@ bool pq_enqueue(pq_instance_ptr pq, pq_node_ptr item)
 	return true;
 };
 
-bool pq_enqueue_l(pq_instance_ptr pq, pq_node_ptr value)
+bool pounce_enpounce_l(pounce_instance_ptr pq, pounce_node_ptr value)
 {
-	pq_node_ptr item = pq_init_node();
+	pounce_node_ptr item = pounce_init_node();
 	if (!item)
 	{
 		return false;
@@ -187,11 +187,11 @@ bool pq_enqueue_l(pq_instance_ptr pq, pq_node_ptr value)
 	item->data->w.list = value;
 	item->type = LIST_T;
 
-	return pq_enqueue(pq, item);
+	return pounce_enqueue(pq, item);
 };
-bool pq_enqueue_b(pq_instance_ptr pq, bool value)
+bool pounce_enpounce_b(pounce_instance_ptr pq, bool value)
 {
-	pq_node_ptr item = pq_init_node();
+	pounce_node_ptr item = pounce_init_node();
 	if (!item)
 	{
 		return false;
@@ -199,11 +199,11 @@ bool pq_enqueue_b(pq_instance_ptr pq, bool value)
 	item->data->w.b = value;
 	item->type = BOOL_T;
 
-	return pq_enqueue(pq, item);
+	return pounce_enqueue(pq, item);
 };
-bool pq_enqueue_i(pq_instance_ptr pq, long value)
+bool pounce_enpounce_i(pounce_instance_ptr pq, long value)
 {
-	pq_node_ptr item = pq_init_node();
+	pounce_node_ptr item = pounce_init_node();
 	if (!item)
 	{
 		return false;
@@ -211,11 +211,11 @@ bool pq_enqueue_i(pq_instance_ptr pq, long value)
 	item->data->w.i = value;
 	item->type = INT_T;
 
-	return pq_enqueue(pq, item);
+	return pounce_enqueue(pq, item);
 };
-bool pq_enqueue_d(pq_instance_ptr pq, double value)
+bool pounce_enpounce_d(pounce_instance_ptr pq, double value)
 {
-	pq_node_ptr item = pq_init_node();
+	pounce_node_ptr item = pounce_init_node();
 	if (!item)
 	{
 		return false;
@@ -223,11 +223,11 @@ bool pq_enqueue_d(pq_instance_ptr pq, double value)
 	item->data->w.d = value;
 	item->type = REAL_T;
 
-	return pq_enqueue(pq, item);
+	return pounce_enqueue(pq, item);
 };
-bool pq_enqueue_s(pq_instance_ptr pq, char t, char *value)
+bool pounce_enpounce_s(pounce_instance_ptr pq, char t, char *value)
 {
-	pq_node_ptr item = pq_init_node();
+	pounce_node_ptr item = pounce_init_node();
 	if (!item)
 	{
 		return false;
@@ -235,18 +235,18 @@ bool pq_enqueue_s(pq_instance_ptr pq, char t, char *value)
 	item->data->w.s = xstrcp(value);
 	item->type = t;
 
-	return pq_enqueue(pq, item);
+	return pounce_enqueue(pq, item);
 }
 
-pq_node_ptr pq_dequeue(pq_instance_ptr pq)
+pounce_node_ptr pounce_dequeue(pounce_instance_ptr pq)
 {
 
-	if (is_pq_empty(pq))
+	if (is_pounce_empty(pq))
 	{
 		return NULL;
 	}
-	pq_node_ptr temp = pq->front;
-	pq_node_ptr ret_val = pq->front;
+	pounce_node_ptr temp = pq->front;
+	pounce_node_ptr ret_val = pq->front;
 	if (temp->previous == NULL)
 	{
 		pq->rear = NULL;
@@ -256,36 +256,42 @@ pq_node_ptr pq_dequeue(pq_instance_ptr pq)
 	return ret_val;
 }
 
-// popback is not very efficient, but assumed to be only used in non-time critical processes
-pq_node_ptr pq_popback(pq_instance_ptr pq)
+// popback is not very efficient, but it is assumed to be only used in non-time critical processes
+pounce_node_ptr pounce_popout(pounce_instance_ptr pq)
 {
-	if (is_pq_empty(pq))
+	if (is_pounce_empty(pq))
 	{
 		return NULL;
 	}
-	pq_node_ptr temp = pq->front;
-	pq_node_ptr ret_val = pq->rear;
+	pounce_node_ptr temp = pq->front;
+	pounce_node_ptr ret_val = pq->rear;
 	// not a doubly linked list, so we have to walk the list
-	while (temp->previous != ret_val)
+	while (temp->previous != NULL && temp->previous != ret_val)
 	{
 		temp = temp->previous;
+	}
+	if (temp == ret_val)
+	{
+		pq->rear = NULL;
+		pq->front = NULL;
+		return ret_val;
 	}
 	pq->rear = temp;
 	temp->previous = NULL;
 	return ret_val;
 }
 
-bool pq_clear(pq_instance_ptr pq)
+bool pounce_clear(pounce_instance_ptr pq)
 {
 
-	if (is_pq_empty(pq))
+	if (is_pounce_empty(pq))
 	{
 
 		return false;
 	}
 
-	pq_node_ptr current = pq->front;
-	pq_node_ptr previous = NULL;
+	pounce_node_ptr current = pq->front;
+	pounce_node_ptr previous = NULL;
 
 	while (current != NULL)
 	{
@@ -298,5 +304,5 @@ bool pq_clear(pq_instance_ptr pq)
 	pq->front = NULL;
 	pq->rear = NULL;
 
-	return is_pq_empty(pq);
+	return is_pounce_empty(pq);
 }

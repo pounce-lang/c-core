@@ -54,17 +54,17 @@ int main(int argc, char **argv)
         //     fprintf(stderr, "Error: %s is unable to open file %s\n", argv[0], argv[2]);
         //     return 1;
         // }
-        ps_instance_ptr stack = ps_init();
+        stack_instance_ptr stack = stack_init();
         parser_result_ptr pr = parse(0, pp);
         if (pr)
         {
             stack = purr(stack, pr->pq, wd);
         }
-        ps_display(stack);
+        stack_display(stack);
 
         free(pr->pq);
         free(pr);
-        ps_clear(stack);
+        stack_clear(stack);
         free(stack);
         dictionary_del(wd);
         return 0;
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
     linenoiseHistorySetMaxLen(100);
 
     char *input_program;
-    ps_instance_ptr stack = ps_init();
+    stack_instance_ptr stack = stack_init();
     printf("Pounce REPL (enter Pounce words or type 'exit' or <Ctrl-c> to leave)\n");
     while ((input_program = linenoise("pounce> ")) != NULL)
     {
@@ -92,11 +92,11 @@ int main(int argc, char **argv)
             if (argc == 2 && (strcmp(argv[1], "-dq") == 0 || strcmp(argv[1], "--display-program-queue") == 0))
             {
                 printf("Program queue: ");
-                pq_display(pr->pq);
+                pounce_display(pr->pq);
             }
             stack = purr(stack, pr->pq, wd);
             // printf("Stack (result):\n");
-            ps_display(stack);
+            stack_display(stack);
 
             free(pr->pq);
             free(pr);
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
         }
         free(input_program);
     }
-    ps_clear(stack);
+    stack_clear(stack);
     free(stack);
     dictionary_del(wd);
 }
