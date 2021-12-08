@@ -830,6 +830,39 @@ pounce_node_ptr pf_uncons(stack_instance_ptr s, pounce_instance_ptr p)
     return NULL;
 };
 
+pounce_node_ptr pf_if_else(stack_instance_ptr s, pounce_instance_ptr p)
+{
+    pounce_node_ptr e = stack_pop(s);
+    if (!e || e->type != LIST_T)
+    {
+        printf("'ifte' expected an else phrase at the top of the stack\n");
+        return NULL;
+    }
+    pounce_node_ptr t = stack_pop(s);
+    if (!t || t->type != LIST_T)
+    {
+        printf("'ifte' expected a then phrase at the top (-1) of the stack\n");
+        return NULL;
+    }
+    pounce_node_ptr c = stack_pop(s);
+    if (!c || c->type != BOOL_T)
+    {
+        printf("'ifte' expected a boolean at the top (-2) of the stack\n");
+        return NULL;
+    }
+    if(c->data->w.b) {
+        pounce_requeue(p, t);
+        pounce_free_node(e);
+    }
+    else {
+        pounce_requeue(p, e);
+        pounce_free_node(t);
+    }
+    pounce_free_node(c);
+
+    return NULL;
+};
+
 pounce_node_ptr pf_gpioInit(stack_instance_ptr s, pounce_instance_ptr p)
 {
     pounce_node_ptr a = stack_pop(s);
@@ -939,6 +972,30 @@ pounce_node_ptr pf_dip(stack_instance_ptr s, pounce_instance_ptr p)
     return NULL;
 };
 
+pounce_node_ptr pf_dip2(stack_instance_ptr s, pounce_instance_ptr p)
+{
+    pounce_node_ptr e = stack_pop(s);
+    pounce_node_ptr t = stack_pop(s);
+    pounce_node_ptr t2 = stack_pop(s);
+    if (!e || e->type != LIST_T)
+    {
+        printf("'dip2' expected a list at the top of the stack\n");
+        return NULL;
+    }
+    pounce_requeue(p, t);
+    pounce_requeue(p, t2);
+    pounce_node_ptr l = e->data->w.list;
+    pounce_node_ptr rev = reverse_copy(l);
+    while (rev)
+    {
+        l = rev->previous;
+        pounce_requeue(p, rev);
+        rev = l;
+    }
+    pounce_free_node(e);
+    return NULL;
+};
+
 pounce_node_ptr pf_numGt(stack_instance_ptr s, pounce_instance_ptr p)
 {
     pounce_node_ptr a = stack_pop(s);
@@ -1002,7 +1059,6 @@ pounce_node_ptr pf_words(stack_instance_ptr s, pounce_instance_ptr p, dictionary
 dictionary *init_core_word_dictionary()
 {
     dictionary *wd = dictionary_new(32);
-    dictionary_set(wd, "twice", make_list_node("dup +"));
     dictionary_set(wd, "dup2", make_list_node("[dup] dip dup [swap] dip"));
     dictionary_set(wd, "strAppend", make_fun_node(pf_strAppend));
     dictionary_set(wd, "+", make_fun_node(pf_numAdd));
@@ -1029,6 +1085,19 @@ dictionary *init_core_word_dictionary()
     // dictionary_set(wd, "split", make_fun_node(pf_arrSplit));
     // dictionary_set(wd, "concat", make_fun_node(pf_arrConcat));
     // dictionary_set(wd, "binrec", make_fun_node(pf_binrec));
+    // // // const block = toPLOrNull(s?.pop());
+    // // //         const item2 = s?.pop();
+    // // //         pl = [item2].concat(pl);
+    // // //         const item1 = s?.pop();
+    // // //         pl = [item1].concat(pl);
+    // // //         if (block) {
+    // // //             pl = block.concat(pl);
+    dictionary_set(wd, "dip", make_fun_node(pf_dip));
+    dictionary_set(wd, "dip2", make_fun_node(pf_dip2));
+    dictionary_set(wd, "if-else", make_fun_node(pf_if_else));
+    // ['dup', 0, '>', [1, '-', 'swap', 'dup', 'dip2', 'swap', 'times'], ['drop', 'drop'], 'if-else']
+    dictionary_set(wd, "times", make_list_node("dup 0 > [1 - swap dup dip2 swap times] [drop drop] if-else play"));
+
     dictionary_set(wd, "words", make_fun_node_introspect(pf_words));
     dictionary_set(wd, "gpioInit", make_fun_node(pf_gpioInit));
     dictionary_set(wd, "gpioSet", make_fun_node(pf_gpioSet));
