@@ -56,14 +56,18 @@ int main(int argc, char **argv)
         // }
         stack_instance_ptr stack = stack_init();
         parser_result_ptr pr = parse(0, pp);
-        if (pr)
+        if (pr && pr->pq)
         {
-            stack = purr(stack, pr->pq, wd);
+            pounce_instance_ptr pq2 = process_compose(pr->pq, wd);
+            if (pq2)
+            {
+                stack = purr(stack, pq2, wd);
+                stack_display(stack);
+                free(pq2);
+            }
+            free(pr->pq);
+            free(pr);
         }
-        stack_display(stack);
-
-        free(pr->pq);
-        free(pr);
         stack_clear(stack);
         free(stack);
         dictionary_del(wd);
@@ -94,12 +98,18 @@ int main(int argc, char **argv)
                 printf("Program queue: ");
                 pounce_display(pr->pq);
             }
-            stack = purr(stack, pr->pq, wd);
-            // printf("Stack (result):\n");
-            stack_display(stack);
-
+            pounce_instance_ptr pq2 = process_compose(pr->pq, wd);
             free(pr->pq);
             free(pr);
+            if (pq2)
+            {
+                stack = purr(stack, pq2, wd);
+                stack_display(stack);
+                free(pq2);
+            }
+            else {
+                printf("failed to compose.\n");
+            }
         }
         else
         {

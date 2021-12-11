@@ -5,7 +5,9 @@
 #include "dict.c"
 #include "stack.c"
 #include "pounce.h"
+#ifdef MICROPROCESSOR
 #include "hal/gpio.h"
+#endif
 
 pounce_node_ptr pf_play(stack_instance_ptr s, pounce_instance_ptr p);
 
@@ -70,6 +72,7 @@ typedef struct parser_result
     pounce_instance_ptr pq;
     int i;
 } * parser_result_ptr;
+
 pounce_node_ptr dup_node(pounce_node_ptr e);
 
 // returns INT_T for int, REAL_T for float and STRING_T for string (NaN)
@@ -265,6 +268,35 @@ pounce_instance_ptr process_compose(pounce_instance_ptr p, dictionary *d)
     return result_pq;
 };
 
+pounce_node_ptr reverse_copy(pounce_node_ptr l)
+{
+    pounce_node_ptr rev;
+    pounce_node_ptr link = NULL;
+    while (l)
+    {
+        rev = dup_node(l);
+        l = l->previous;
+        rev->previous = link;
+        link = rev;
+    }
+    return rev;
+}
+
+void playback_list(pounce_node_ptr phrase, pounce_instance_ptr p, bool free_up) {
+    pounce_node_ptr l = phrase->data->w.list;
+    pounce_node_ptr rev = reverse_copy(l);
+    while (rev)
+    {
+        l = rev->previous;
+        pounce_requeue(p, rev);
+        rev = l;
+    }
+    if (free_up) {
+        pounce_free_node(phrase);
+    }
+    return;
+};
+
 stack_instance_ptr purr(stack_instance_ptr s, pounce_instance_ptr p, dictionary *d)
 {
     while (!is_pounce_empty(p))
@@ -274,8 +306,11 @@ stack_instance_ptr purr(stack_instance_ptr s, pounce_instance_ptr p, dictionary 
         if (w && type_s(w))
         {
             pounce_node_ptr w_def = dictionary_get(d, w->data->w.s, NULL);
+            
             if (w_def)
             {
+                // pounce_display_word(w_def);
+                // printf("\n");
                 pounce_free_node(w);
                 if (type_s(w_def))
                 {
@@ -295,8 +330,13 @@ stack_instance_ptr purr(stack_instance_ptr s, pounce_instance_ptr p, dictionary 
                 }
                 else if (w_def->type == LIST_T)
                 {
-                    stack_push_l(s, dup_node(w_def)->data->w.list);
-                    pounce_repounce_s(p, "play");
+                    // if (w_def->data->w.list->type == LIST_T) {
+                    //     stack_push_l(s, dup_node(w_def->data->w.list));
+                    //     pounce_repounce_s(p, "play");
+                    // }
+                    // // else no need to play and empty list, right!?
+                    // TODO chekc for empty list.
+                    playback_list(w_def, p, false);
                 }
                 else if (w_def->type == IFUNC_T)
                 {
@@ -315,12 +355,14 @@ stack_instance_ptr purr(stack_instance_ptr s, pounce_instance_ptr p, dictionary 
                     }
                     else
                     {
-                        printf("word dictionary def of type %c is not handled\n", res->type);
+                        printf("word dictionary definition of type %c is not handled\n", res->type);
                     }
                 }
                 else
                 {
-                    printf("word dictionary def is not handled\n");
+                    printf("word dictionary definition %c is not handled\n", w_def->type);
+                    pounce_display_word(w_def);
+                    printf("\nthis is not good and you must ask yourself \"Good god man, what have you done?\"\n");
                 }
             }
             else
@@ -343,6 +385,7 @@ pounce_node_ptr make_string_node(char t, char *s)
     n->data->w.s = xstrcp(s);
     return n;
 }
+
 pounce_node_ptr make_list_node(char *s)
 {
     pounce_node_ptr n = pounce_init_node();
@@ -770,6 +813,8 @@ pounce_node_ptr dup_node(pounce_node_ptr e)
         new_l->data->w.list = head;
         return new_l;
     }
+    printf("Error in dup_node, type not handled.");
+    return NULL;
 }
 
 // pounce (internal word) function
@@ -851,11 +896,11 @@ pounce_node_ptr pf_if_else(stack_instance_ptr s, pounce_instance_ptr p)
         return NULL;
     }
     if(c->data->w.b) {
-        pounce_requeue(p, t);
+        playback_list(t, p, true);
         pounce_free_node(e);
     }
     else {
-        pounce_requeue(p, e);
+        playback_list(e, p, true);
         pounce_free_node(t);
     }
     pounce_free_node(c);
@@ -863,6 +908,7 @@ pounce_node_ptr pf_if_else(stack_instance_ptr s, pounce_instance_ptr p)
     return NULL;
 };
 
+#ifdef MICROPROCESSOR
 pounce_node_ptr pf_gpioInit(stack_instance_ptr s, pounce_instance_ptr p)
 {
     pounce_node_ptr a = stack_pop(s);
@@ -914,21 +960,7 @@ pounce_node_ptr pf_gpioSet(stack_instance_ptr s, pounce_instance_ptr p)
     // nothing was added to the stack or the pl
     return NULL;
 };
-
-
-pounce_node_ptr reverse_copy(pounce_node_ptr l)
-{
-    pounce_node_ptr rev;
-    pounce_node_ptr link = NULL;
-    while (l)
-    {
-        rev = dup_node(l);
-        l = l->previous;
-        rev->previous = link;
-        link = rev;
-    }
-    return rev;
-}
+#endif
 
 pounce_node_ptr pf_play(stack_instance_ptr s, pounce_instance_ptr p)
 {
@@ -938,15 +970,7 @@ pounce_node_ptr pf_play(stack_instance_ptr s, pounce_instance_ptr p)
         printf("'play' expected a list at the top of the stack\n");
         return NULL;
     }
-    pounce_node_ptr l = phrase->data->w.list;
-    pounce_node_ptr rev = reverse_copy(l);
-    while (rev)
-    {
-        l = rev->previous;
-        pounce_requeue(p, rev);
-        rev = l;
-    }
-    pounce_free_node(phrase);
+    playback_list(phrase, p, true);
     return NULL;
 };
 
@@ -960,15 +984,16 @@ pounce_node_ptr pf_dip(stack_instance_ptr s, pounce_instance_ptr p)
         return NULL;
     }
     pounce_requeue(p, t);
-    pounce_node_ptr l = e->data->w.list;
-    pounce_node_ptr rev = reverse_copy(l);
-    while (rev)
-    {
-        l = rev->previous;
-        pounce_requeue(p, rev);
-        rev = l;
-    }
-    pounce_free_node(e);
+    playback_list(e, p, true);
+    // pounce_node_ptr l = e->data->w.list;
+    // pounce_node_ptr rev = reverse_copy(l);
+    // while (rev)
+    // {
+    //     l = rev->previous;
+    //     pounce_requeue(p, rev);
+    //     rev = l;
+    // }
+    // pounce_free_node(e);
     return NULL;
 };
 
@@ -984,16 +1009,70 @@ pounce_node_ptr pf_dip2(stack_instance_ptr s, pounce_instance_ptr p)
     }
     pounce_requeue(p, t);
     pounce_requeue(p, t2);
-    pounce_node_ptr l = e->data->w.list;
-    pounce_node_ptr rev = reverse_copy(l);
-    while (rev)
-    {
-        l = rev->previous;
-        pounce_requeue(p, rev);
-        rev = l;
-    }
-    pounce_free_node(e);
+    playback_list(e, p, true);
+    // pounce_node_ptr l = e->data->w.list;
+    // pounce_node_ptr rev = reverse_copy(l);
+    // while (rev)
+    // {
+    //     l = rev->previous;
+    //     pounce_requeue(p, rev);
+    //     rev = l;
+    // }
+    // pounce_free_node(e);
     return NULL;
+};
+
+pounce_node_ptr pf_numEq(stack_instance_ptr s, pounce_instance_ptr p)
+{
+    pounce_node_ptr a = stack_pop(s);
+    if (a == NULL)
+        return NULL;
+    if (a->type == INT_T || a->type == REAL_T)
+    {
+        pounce_node_ptr b = stack_pop(s);
+        if (b == NULL)
+        {
+            stack_push_node(s, a);
+            return NULL;
+        }
+        if (b->type == INT_T || b->type == REAL_T)
+        {
+            if (a->type == INT_T && b->type == INT_T)
+            {
+                bool prod = (b->data->w.i == a->data->w.i);
+                pounce_free_node(a);
+                pounce_free_node(b);
+                return make_boolean_node(prod);
+            }
+            else if (a->type == REAL_T && b->type == REAL_T)
+            {
+                bool prod = (b->data->w.d == a->data->w.d);
+                pounce_free_node(a);
+                pounce_free_node(b);
+                return make_boolean_node(prod);
+            }
+            else
+            {
+                printf("'=' both args to be integer or both to be floating point, but got a mix\n");
+                stack_push_node(s, b);
+                stack_push_node(s, a);
+                return NULL;
+            }
+        }
+        else
+        {
+            printf("'=' expected top(-1) to be a number, but got type %c instead\n", b->type);
+            stack_push_node(s, b);
+            stack_push_node(s, a);
+            return NULL;
+        }
+    }
+    else
+    {
+        printf("'=' expected top to be a number, but got type %c instead\n", a->type);
+        stack_push_node(s, a);
+        return NULL;
+    }
 };
 
 pounce_node_ptr pf_numGt(stack_instance_ptr s, pounce_instance_ptr p)
@@ -1080,6 +1159,7 @@ dictionary *init_core_word_dictionary()
     // dictionary_set(wd, "<", make_fun_node(pf_numLt));
     // dictionary_set(wd, "<=", make_fun_node(pf_numLtEq));
     dictionary_set(wd, ">", make_fun_node(pf_numGt));
+    dictionary_set(wd, "=", make_fun_node(pf_numEq));
     // dictionary_set(wd, ">=", make_fun_node(pf_numGtEq));
     // dictionary_set(wd, "==", make_fun_node(pf_numEq));
     // dictionary_set(wd, "split", make_fun_node(pf_arrSplit));
@@ -1096,12 +1176,14 @@ dictionary *init_core_word_dictionary()
     dictionary_set(wd, "dip2", make_fun_node(pf_dip2));
     dictionary_set(wd, "if-else", make_fun_node(pf_if_else));
     // ['dup', 0, '>', [1, '-', 'swap', 'dup', 'dip2', 'swap', 'times'], ['drop', 'drop'], 'if-else']
-    dictionary_set(wd, "times", make_list_node("dup 0 > [1 - swap dup dip2 swap times] [drop drop] if-else play"));
+    dictionary_set(wd, "times", make_list_node("dup 0 > [1 - swap dup dip2 swap times] [drop drop] if-else"));
+    dictionary_set(wd, "rec", make_list_node("dup 0 > [1 - [a swap cons] dip rec] [drop] if-else"));
 
     dictionary_set(wd, "words", make_fun_node_introspect(pf_words));
+#ifdef MICROPROCESSOR
     dictionary_set(wd, "gpioInit", make_fun_node(pf_gpioInit));
     dictionary_set(wd, "gpioSet", make_fun_node(pf_gpioSet));
-    
+#endif    
     return wd;
 }
 

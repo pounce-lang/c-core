@@ -1,7 +1,7 @@
 # Pounce C-CORE
 (work in progress) "C" code version of Pounce (parser and interpreter) intended for micro controllers, or web assembly.
 
-## build the REPL with gcc
+## build the (non-microprocessor) REPL with gcc
 `gcc -o ./dist/repl ./src/repl/repl.c ./src/linenoise/linenoise.c`
 
 `./dist/repl`
@@ -15,6 +15,7 @@
 `./dist/repl -i tests/source.p`
 
 ### some tests
+tests that exercise the stack and queue (internal workings) DataTypes
 `gcc -o ./dist/tests ./src/tests.c`
 
 `./dist/tests`
@@ -22,10 +23,10 @@
 Running this may take a few seconds since it does a simple stress test.
 
 ### valgrind check for memory leaks
-`valgrind --leak-check=yes ./dist/repl`
+`valgrind --leak-check=yes ./dist/repl -i tests/all-tests.p`
 
 
-## build rp2040 pico (micro controller) REPL 
+## build rp2040 pico (microprocessor) REPL 
 `export PICO_SDK_PATH=<myRepoPath>/pico-sdk`
 
 `cd build-pico`

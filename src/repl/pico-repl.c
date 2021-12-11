@@ -1,9 +1,11 @@
+#define MICROPROCESSOR
 #include <stdio.h>
 // #include <stdlib.h>
 #include "pico/stdlib.h"
 #include <string.h>
 #include "../pounce.c"
 #include "pico-history.c"
+
 
 // const uint LED_PIN = 25;
 

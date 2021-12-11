@@ -380,7 +380,7 @@ void pounce_attendance(pounce_node_ptr temp, char *sep)
 {
     if (!sep)
     {
-        sep = "";
+        sep = " ";
     }
     printf("[");
 
@@ -401,27 +401,27 @@ void pounce_display_word(pounce_node_ptr node)
     if (type_s(node))
     {
         if (node->type == STRING_T) {
-            printf(" %s ", node->data->w.s);
+            printf("%s", node->data->w.s);
         }
         else {
-            printf(" %c%s%c ", node->type, node->data->w.s, node->type);
+            printf("%c%s%c", node->type, node->data->w.s, node->type);
         }
     }
     else if (node->type == BOOL_T)
     {
-        printf(" %s ", node->data->w.b ? "true": "false");
+        printf("%s", node->data->w.b ? "true": "false");
     }
     else if (node->type == INT_T)
     {
-        printf(" %d ", node->data->w.i);
+        printf("%d", node->data->w.i);
     }
     else if (node->type == REAL_T)
     {
-        printf(" %f ", node->data->w.d);
+        printf("%f", node->data->w.d);
     }
     else if (node->type == LIST_T)
     {
-        pounce_attendance(node->data->w.list, "");
+        pounce_attendance(node->data->w.list, " ");
     }
     else if (node->type == IFUNC_T)
     {
