@@ -161,7 +161,7 @@ int main()
         parser_result_ptr pr = parse(0, input_program);
         if (pr && pr->pq)
         {
-            pounce_instance_ptr pq2 = process_compose(pr->pq, wd);
+            pdq_instance_ptr pq2 = process_compose(pr->pq, wd);
             free(pr->pq);
             free(pr);
             if (pq2)

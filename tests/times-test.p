@@ -1,1 +1,1 @@
-0 [1 +] 12 times
+0 [1 +] 1 dup 0 > [1 - swap dup dip2 swap] [drop drop] if-else

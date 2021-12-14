@@ -5,8 +5,8 @@
 #include "pounce.h"
 
 
-pounce_node_ptr stack_init_node() {
-	pounce_node_ptr item = (pounce_node_ptr)malloc(sizeof(struct pounce_node));
+pdq_node_ptr stack_init_node() {
+	pdq_node_ptr item = (pdq_node_ptr)malloc(sizeof(struct pdq_node));
 	if (item == NULL)
 	{
 		return false;
@@ -46,9 +46,9 @@ bool is_stack_empty(stack_instance_ptr ps)
 }
 
 
-bool stack_push_l(stack_instance_ptr ps, pounce_node_ptr value)
+bool stack_push_l(stack_instance_ptr ps, pdq_node_ptr value)
 {
-	pounce_node_ptr item = stack_init_node();
+	pdq_node_ptr item = stack_init_node();
 	item->data->w.list = value;
 	item->type = LIST_T;
 
@@ -64,7 +64,7 @@ bool stack_push_l(stack_instance_ptr ps, pounce_node_ptr value)
 
 bool stack_push_s(stack_instance_ptr ps, char *value)
 {
-	pounce_node_ptr item = stack_init_node();
+	pdq_node_ptr item = stack_init_node();
 	item->data->w.s = xstrcp(value);
 	item->type = STRING_T;
 
@@ -78,7 +78,7 @@ bool stack_push_s(stack_instance_ptr ps, char *value)
 	return true;
 }
 
-bool stack_push_node(stack_instance_ptr ps, pounce_node_ptr n)
+bool stack_push_node(stack_instance_ptr ps, pdq_node_ptr n)
 {
 	if (ps->top == NULL)
 		ps->top = n;
@@ -92,7 +92,7 @@ bool stack_push_node(stack_instance_ptr ps, pounce_node_ptr n)
 
 bool stack_push_b(stack_instance_ptr ps, bool value)
 {
-	pounce_node_ptr item = stack_init_node();
+	pdq_node_ptr item = stack_init_node();
 	item->data->w.b = value;
 	item->type = BOOL_T;
 
@@ -108,7 +108,7 @@ bool stack_push_b(stack_instance_ptr ps, bool value)
 
 bool stack_push_i(stack_instance_ptr ps, long value)
 {
-	pounce_node_ptr item = stack_init_node();
+	pdq_node_ptr item = stack_init_node();
 	item->data->w.i = value;
 	item->type = INT_T;
 
@@ -124,7 +124,7 @@ bool stack_push_i(stack_instance_ptr ps, long value)
 
 bool stack_push_d(stack_instance_ptr ps, double value)
 {
-	pounce_node_ptr item = stack_init_node();
+	pdq_node_ptr item = stack_init_node();
 	item->data->w.d = value;
 	item->type = REAL_T;
 
@@ -138,13 +138,13 @@ bool stack_push_d(stack_instance_ptr ps, double value)
 	return true;
 }
 
-pounce_node_ptr stack_pop(stack_instance_ptr ps)
+pdq_node_ptr stack_pop(stack_instance_ptr ps)
 {
 	if (is_stack_empty(ps))
 	{
 		return NULL;
 	}
-	pounce_node_ptr ret_val = ps->top;
+	pdq_node_ptr ret_val = ps->top;
 	ps->top = ps->top->previous;
 	ret_val->previous = NULL;
 	return ret_val;
@@ -157,13 +157,13 @@ bool stack_clear(stack_instance_ptr ps)
 		return false;
 	}
 
-	pounce_node_ptr current = ps->top;
-	pounce_node_ptr previous = NULL;
+	pdq_node_ptr current = ps->top;
+	pdq_node_ptr previous = NULL;
 
 	while (current != NULL)
 	{
 		previous = current->previous;
-        pounce_free_node(current);
+        pdq_free_node(current);
 		current = previous;
 	}
 	ps->top = NULL;

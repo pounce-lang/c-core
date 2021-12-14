@@ -1,1 +1,1 @@
-true 0 [1 +] 12 times 12 = && ["all tests pass"] ["failure"] if-else
+true 0 [1 +] 100000 times 100000 = && ["all tests pass"] ["failure"] if-else

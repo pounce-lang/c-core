@@ -1,1 +1,1 @@
-hello dup
+[[][[]]] dup

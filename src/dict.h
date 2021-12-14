@@ -44,7 +44,7 @@ extern "C" {
 typedef struct _dictionary_ {
     int             n ;     /** Number of entries in dictionary */
     ssize_t         size ;  /** Storage size */
-    pounce_node_ptr  *  val ;   /** List of definition values */
+    pdq_node_ptr  *  val ;   /** List of definition values */
     char        **  key ;   /** List of string keys */
     unsigned     *  hash ;  /** List of hash values for keys */
 } dictionary ;
@@ -108,7 +108,7 @@ void dictionary_del(dictionary * vd);
   dictionary object, you should not try to free it or modify it.
  */
 /*--------------------------------------------------------------------------*/
-pounce_node_ptr dictionary_get(const dictionary * d, const char * key, pounce_node_ptr def);
+pdq_node_ptr dictionary_get(const dictionary * d, const char * key, pdq_node_ptr def);
 
 
 /*-------------------------------------------------------------------------*/
@@ -137,7 +137,7 @@ pounce_node_ptr dictionary_get(const dictionary * d, const char * key, pounce_no
   This function returns non-zero in case of failure.
  */
 /*--------------------------------------------------------------------------*/
-int dictionary_set(dictionary * vd, const char * key, pounce_node_ptr val);
+int dictionary_set(dictionary * vd, const char * key, pdq_node_ptr val);
 
 /*-------------------------------------------------------------------------*/
 /**
@@ -153,7 +153,7 @@ int dictionary_set(dictionary * vd, const char * key, pounce_node_ptr val);
 void dictionary_unset(dictionary * d, const char * key);
 
 
-void pounce_display_word(pounce_node_ptr node);
+void pdq_display_word(pdq_node_ptr node);
 
 /*-------------------------------------------------------------------------*/
 /**

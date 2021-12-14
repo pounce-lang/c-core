@@ -58,7 +58,7 @@ int main(int argc, char **argv)
         parser_result_ptr pr = parse(0, pp);
         if (pr && pr->pq)
         {
-            pounce_instance_ptr pq2 = process_compose(pr->pq, wd);
+            pdq_instance_ptr pq2 = process_compose(pr->pq, wd);
             if (pq2)
             {
                 stack = purr(stack, pq2, wd);
@@ -96,9 +96,9 @@ int main(int argc, char **argv)
             if (argc == 2 && (strcmp(argv[1], "-dq") == 0 || strcmp(argv[1], "--display-program-queue") == 0))
             {
                 printf("Program queue: ");
-                pounce_display(pr->pq);
+                pdq_display(pr->pq);
             }
-            pounce_instance_ptr pq2 = process_compose(pr->pq, wd);
+            pdq_instance_ptr pq2 = process_compose(pr->pq, wd);
             free(pr->pq);
             free(pr);
             if (pq2)

@@ -69,11 +69,11 @@ static char *xstrdup(const char *s)
 /*--------------------------------------------------------------------------*/
 static int dictionary_grow(dictionary *d)
 {
-    pounce_node_ptr *new_val;
+    pdq_node_ptr *new_val;
     char **new_key;
     unsigned *new_hash;
 
-    new_val = (pounce_node_ptr *)calloc(d->size * 2, sizeof *d->val);
+    new_val = (pdq_node_ptr *)calloc(d->size * 2, sizeof *d->val);
     new_key = (char **)calloc(d->size * 2, sizeof *d->key);
     new_hash = (unsigned *)calloc(d->size * 2, sizeof *d->hash);
     if (!new_val || !new_key || !new_hash)
@@ -164,7 +164,7 @@ dictionary *dictionary_new(size_t size)
     if (d)
     {
         d->size = size;
-        d->val = (pounce_node_ptr *)calloc(size, sizeof *d->val);
+        d->val = (pdq_node_ptr *)calloc(size, sizeof *d->val);
         d->key = (char **)calloc(size, sizeof *d->key);
         d->hash = (unsigned *)calloc(size, sizeof *d->hash);
     }
@@ -191,7 +191,7 @@ void dictionary_del(dictionary *d)
         if (d->key[i] != NULL)
             free(d->key[i]);
         if (d->val[i] != NULL)
-            pounce_free_node(d->val[i]);
+            pdq_free_node(d->val[i]);
 
             // free(d->val[i]);
     }
@@ -216,7 +216,7 @@ void dictionary_del(dictionary *d)
   dictionary object, you should not try to free it or modify it.
  */
 /*--------------------------------------------------------------------------*/
-pounce_node_ptr dictionary_get(const dictionary *d, const char *key, pounce_node_ptr def)
+pdq_node_ptr dictionary_get(const dictionary *d, const char *key, pdq_node_ptr def)
 {
     unsigned hash;
     ssize_t i;
@@ -265,7 +265,7 @@ pounce_node_ptr dictionary_get(const dictionary *d, const char *key, pounce_node
   This function returns non-zero in case of failure.
  */
 /*--------------------------------------------------------------------------*/
-int dictionary_set(dictionary *d, const char *key, pounce_node_ptr val)
+int dictionary_set(dictionary *d, const char *key, pdq_node_ptr val)
 {
     ssize_t i;
     unsigned hash;
@@ -288,7 +288,7 @@ int dictionary_set(dictionary *d, const char *key, pounce_node_ptr val)
                 { /* Same key */
                     /* Found a value: modify and return */
                     if (d->val[i] != NULL)
-                        pounce_free_node(d->val[i]);
+                        pdq_free_node(d->val[i]);
                     d->val[i] = (val ? val : NULL);
                     /* Value has been modified: return */
                     return 0;
@@ -368,7 +368,7 @@ void dictionary_unset(dictionary *d, const char *key)
     {
         //
         // free(d->val[i]);
-        pounce_free_node(d->val[i]);
+        pdq_free_node(d->val[i]);
         d->val[i] = NULL;
     }
     d->hash[i] = 0;
@@ -376,7 +376,7 @@ void dictionary_unset(dictionary *d, const char *key)
     return;
 }
 
-void pounce_attendance(pounce_node_ptr temp, char *sep)
+void pdq_attendance(pdq_node_ptr temp, char *sep)
 {
     if (!sep)
     {
@@ -386,7 +386,7 @@ void pounce_attendance(pounce_node_ptr temp, char *sep)
 
     while (temp != NULL)
     {
-        pounce_display_word(temp);
+        pdq_display_word(temp);
 
         temp = temp->previous;
         if (temp)
@@ -396,7 +396,7 @@ void pounce_attendance(pounce_node_ptr temp, char *sep)
     printf("]");
 }
 
-void pounce_display_word(pounce_node_ptr node)
+void pdq_display_word(pdq_node_ptr node)
 {
     if (type_s(node))
     {
@@ -421,7 +421,7 @@ void pounce_display_word(pounce_node_ptr node)
     }
     else if (node->type == LIST_T)
     {
-        pounce_attendance(node->data->w.list, " ");
+        pdq_attendance(node->data->w.list, " ");
     }
     else if (node->type == IFUNC_T)
     {
@@ -462,7 +462,7 @@ void dictionary_dump(const dictionary *d)
         {
             printf("%20s\t[",
                    d->key[i]);
-            pounce_display_word(d->val[i]);
+            pdq_display_word(d->val[i]);
             printf("]\n");
         }
     }
