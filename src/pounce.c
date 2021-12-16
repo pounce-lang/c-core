@@ -809,7 +809,7 @@ pdq_node_ptr dup_node(pdq_node_ptr e)
     if (e->type == INT_T)
         return make_integer_node(e->data->w.i);
     if (e->type == BOOL_T)
-        return make_boolean_node(e->data->w.i);
+        return make_boolean_node(e->data->w.b);
     if (e->type == REAL_T)
         return make_double_node(e->data->w.d);
     if (e->type == LIST_T)
