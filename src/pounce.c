@@ -343,20 +343,13 @@ stack_instance_ptr purr(stack_instance_ptr s, pdq_instance_ptr p, dictionary *d)
                     {
                         // OK NULL means nothing to add to the stack
                     }
-                    else if (res->type != LIST_T)
-                    {
-                        stack_push_node(s, res);
-                    }
                     else if (res->type == LIST_T)
                     {
-                        printf("info stack_push_l");
-                        pdq_display_word(res);
-                        printf("\n");
-                        stack_push_l(s, res);
+                        stack_push_l(s, res->data->w.list);
                     }
                     else
                     {
-                        printf("word dictionary definition of type %c is not handled\n", res->type);
+                        stack_push_node(s, res);
                     }
                 }
                 else
@@ -388,23 +381,25 @@ pdq_node_ptr make_string_node(char t, char *s)
 }
 
 pdq_node_ptr make_list_node(pdq_node_ptr l)
-{    
+{
     pdq_node_ptr n = pdq_init_node();
     n->type = LIST_T;
 
-    // new_l->data = word_init();
-    // new_l->data->w.list = NULL;
-    pdq_node_ptr cur, next, head = NULL;
+    pdq_node_ptr cur, prev, head = NULL, old = NULL;
     if (l)
     {
         head = dup_node(l);
+        prev = l->previous;
         cur = head;
-        next = head->previous;
-        while (next)
+        old = NULL;
+        while (prev)
         {
-            cur = dup_node(cur);
-            cur = next = cur->previous;
+            old = cur;
+            cur = dup_node(prev);
+            old->previous = cur;
+            prev = prev->previous;
         }
+        cur->previous = NULL;
     }
 
     n->data->w.list = head;
@@ -832,7 +827,8 @@ pdq_node_ptr pf_dup(stack_instance_ptr s, pdq_instance_ptr p)
         printf("'dup' expected an element at the top of the stack\n");
         return NULL;
     }
-    return dup_node(e);
+    stack_push_node(s, dup_node(e));
+    return NULL;
 };
 pdq_node_ptr pf_cons(stack_instance_ptr s, pdq_instance_ptr p)
 {

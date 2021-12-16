@@ -52,12 +52,12 @@ pdq_node_ptr pdq_init_node()
 	pdq_node_ptr item = (pdq_node_ptr)malloc(sizeof(struct pdq_node));
 	if (item == NULL)
 	{
-		return false;
+		return NULL;
 	}
 	word_ptr wp = word_init();
 	if (wp == NULL)
 	{
-		return false;
+		return NULL;
 	}
 	item->data = wp;
 	item->previous = NULL;
