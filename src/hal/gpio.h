@@ -8,9 +8,11 @@
 extern "C" {
 #endif
 
+bool get_bootsel_button();
+
 void init_gpio(int pin, bool dir_out, int pull_resistor);
 
-void get_gpio(int pin);
+bool get_gpio(int pin);
 
 void set_gpio(int pin, int val);
 

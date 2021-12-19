@@ -25,7 +25,7 @@ void stack_display(stack_instance_ptr ps)
     printf("\n");
 }
 
-void pdq_display(pdq_instance_ptr pq)
+void pdq_display(pdq_instance_ptr pq, char *sep)
 {
     if (is_pdq_empty(pq))
     {
@@ -35,7 +35,12 @@ void pdq_display(pdq_instance_ptr pq)
 
     pdq_node_ptr n = pq->front;
 
-    pdq_attendance(n, "");
+    if (!sep) {
+        pdq_attendance(n, "");
+    }
+    else {
+        pdq_attendance(n, sep);
+    }
     printf("\n");
 }
 
@@ -148,6 +153,7 @@ parser_result_ptr parse(int i, const char *pt)
     char in_string = 0;
     char str[MAX_S_LEN] = "";
     int str_i = 0;
+    char in_comment = '\0';
 
     parser_result_ptr result = (parser_result_ptr)malloc(sizeof(struct parser_result));
 
@@ -165,8 +171,22 @@ parser_result_ptr parse(int i, const char *pt)
     }
     while (result->pq && i < len)
     {
+        if (!in_string && pt[i] == '#')
+        {
+            in_comment = pt[i];
+            i++;
+        }
+        else if (in_comment)
+        {
+            // printf("parser- in a comment %c\n", pt[i]);
+            if (pt[i] == '\n' || pt[i] == '\r')
+            {
+                in_comment = '\0';
+            }
+            i++;
+        }
         // start parsing a quoted string
-        if (!in_string && (pt[i] == '\'' || pt[i] == '"' || pt[i] == '`'))
+        else if (!in_comment && !in_string && (pt[i] == '\'' || pt[i] == '"' || pt[i] == '`'))
         {
             in_string = pt[i];
             str_i = 0;
@@ -964,6 +984,28 @@ pdq_node_ptr pf_gpioSet(stack_instance_ptr s, pdq_instance_ptr p)
     // nothing was added to the stack or the pl
     return NULL;
 };
+pdq_node_ptr pf_gpioGet(stack_instance_ptr s, pdq_instance_ptr p)
+{
+    pdq_node_ptr pin = stack_pop(s);
+    if (pin && pin->type == INT_T)
+    {
+        bool val;
+        if (pin->data->w.i == -1) {
+            val = get_bootsel_button();
+        }
+        else {
+            val = get_gpio(pin->data->w.i);
+        }
+        pdq_free_node(pin);
+        stack_push_b(s, val);
+    }
+    else
+    {
+        printf("gpioSet expected top(-1) to be integer, but got type %c instead\n", pin->type);
+    }
+    // nothing was added to the stack or the pl
+    return NULL;
+};
 #endif
 
 pdq_node_ptr pf_play(stack_instance_ptr s, pdq_instance_ptr p)
@@ -1169,11 +1211,10 @@ dictionary *init_core_word_dictionary()
 #ifdef MICROPROCESSOR
     dictionary_set(wd, "gpioInit", make_fun_node(pf_gpioInit));
     dictionary_set(wd, "gpioSet", make_fun_node(pf_gpioSet));
+    dictionary_set(wd, "gpioGet", make_fun_node(pf_gpioGet));
     dictionary_set(wd, "initLED", parse_list_node("25 OUT gpioInit"));
     dictionary_set(wd, "on", parse_list_node("25 HIGH gpioSet"));
     dictionary_set(wd, "off", parse_list_node("25 LOW gpioSet"));
 #endif
     return wd;
 }
-
-// test (early) "5 [[1 []] 2 3] uncons cons cons"; //"5 [32 9 s [3 4] 23] dup [] dup"; // "aaa bbb end noop 3 4 + anId IDK drop [one] w ow strAppend swap size"; // "a[b c] 00 [1[2]3]x y[]z"; // "a[b c] 00 [1[2]3]x y[z"; //" 2 4 + goofy 'cool say'  `jj`  \"543\" ";

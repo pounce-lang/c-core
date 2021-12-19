@@ -96,7 +96,7 @@ int main(int argc, char **argv)
             if (argc == 2 && (strcmp(argv[1], "-dq") == 0 || strcmp(argv[1], "--display-program-queue") == 0))
             {
                 printf("Program queue: ");
-                pdq_display(pr->pq);
+                pdq_display(pr->pq, "");
             }
             pdq_instance_ptr pq2 = process_compose(pr->pq, wd);
             free(pr->pq);
