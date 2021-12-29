@@ -28,7 +28,7 @@ pico_add_extra_outputs(pounce_cme)
 example_auto_set_url(pounce_cme)
 
 #
-# pico_set_program_name( "not foo")
-# pico_set_program_description(foo "this is a foo")
-# pico_set_program_version_string(foo "0.00001a")
-# pico_set_program_url(foo "www.plinth.com/foo")
+# pico_set_program_name(pounce_cme "pico_pounce_cme")
+# pico_set_program_description(pounce_cme "pico pounce cme")
+# pico_set_program_version_string(pounce_cme "0.3.0")
+# pico_set_program_url(pounce_cme "pounce_cme.netlify.io")
