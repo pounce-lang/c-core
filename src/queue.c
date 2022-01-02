@@ -12,13 +12,6 @@
  *  pdq_requeue() puts an element into the front of the queue.
  *  pdq_popout() pulls the last element off of the rear of the queue.
  */
-
-typedef struct pdq_instance
-{
-	pdq_node_ptr front; // = NULL;
-	pdq_node_ptr rear;  // = NULL;
-} * pdq_instance_ptr;
-
 static char *xstrcp(const char *s)
 {
 	char *t;

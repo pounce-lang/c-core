@@ -1,3 +1,4 @@
 dist/**
 repl-history.txt
 build-pico/**
+.vscode

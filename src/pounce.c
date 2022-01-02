@@ -8,6 +8,9 @@
 #ifdef MICROPROCESSOR
 #include "hal/gpio.h"
 #endif
+#if SF_PRO_MICRO_RP2040
+#include "hal/led/WS2812.h"
+#endif
 
 pdq_node_ptr pf_play(stack_instance_ptr s, pdq_instance_ptr p);
 
@@ -1212,9 +1215,16 @@ dictionary *init_core_word_dictionary()
     dictionary_set(wd, "gpioInit", make_fun_node(pf_gpioInit));
     dictionary_set(wd, "gpioSet", make_fun_node(pf_gpioSet));
     dictionary_set(wd, "gpioGet", make_fun_node(pf_gpioGet));
+#endif
+#if POUNCE_PICO_RP2040
     dictionary_set(wd, "initLED", parse_list_node("25 OUT gpioInit"));
     dictionary_set(wd, "on", parse_list_node("25 HIGH gpioSet"));
     dictionary_set(wd, "off", parse_list_node("25 LOW gpioSet"));
+#endif
+#if SF_PRO_MICRO_RP2040
+    dictionary_set(wd, "initLED", make_fun_node(pf_initWS2812LED));
+    dictionary_set(wd, "setLED", make_fun_node(pf_setWS2812LED));
+    // dictionary_set(wd, "fillLED", make_fun_node(pf_fillWS2812LED));
 #endif
     return wd;
 }

@@ -1,4 +1,5 @@
 #define MICROPROCESSOR
+//  set in CMakeFie.txt #define POUNCE_PICO_RP2040
 #include <stdio.h>
 // #include <stdlib.h>
 #include "pico/stdlib.h"

@@ -15,6 +15,7 @@ extern "C" {
 // MACRO to test for a string type node
 #define type_s(n) (n->type == STRING_T || n->type == '\'' || n->type == '"' || n->type == '`')
 
+
 typedef struct word_struct
 {
 	union
@@ -42,6 +43,14 @@ typedef struct stack_instance
 } * stack_instance_ptr;
 
 void pdq_display_word(pdq_node_ptr node);
+
+
+typedef struct pdq_instance
+{
+	pdq_node_ptr front; // = NULL;
+	pdq_node_ptr rear;  // = NULL;
+} * pdq_instance_ptr;
+
 
 
 #ifdef __cplusplus
