@@ -12,6 +12,7 @@
 #include "hardware/clocks.h"
 #include "ws2812.pio.h"
 #include "../../pounce.h"
+#include "../../stack.h"
 
 #define IS_RGBW false
 #define NUM_PIXELS 1
@@ -35,7 +36,15 @@ static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
 }
 
 pdq_node_ptr pf_setWS2812LED(stack_instance_ptr s, pdq_instance_ptr p) {
-    put_pixel(rand());
+    pdq_node_ptr a = stack_pop(s);
+    if (a == NULL) {
+        return NULL; }
+    if (a->type == INT_T)
+    {
+        put_pixel(a->data->w.i);
+            
+    }
+    pdq_free_node(a);
     return NULL;
 }
 
@@ -43,7 +52,7 @@ pdq_node_ptr pf_setWS2812LED(stack_instance_ptr s, pdq_instance_ptr p) {
 pdq_node_ptr pf_initWS2812LED(stack_instance_ptr s, pdq_instance_ptr p) {
     //set_sys_clock_48();
     // stdio_init_all();
-    printf("WS2812 Smoke Test, using pin %d", WS2812_PIN);
+    // printf("WS2812 Smoke Test, using pin %d", WS2812_PIN);
 
     // todo get free sm
     PIO pio = pio0;

@@ -2,6 +2,7 @@
     "files.associations": {
         "*.tcc": "c",
         "istream": "c",
-        "pounce.h": "c"
+        "pounce.h": "c",
+        "ws2812.hpp": "c"
     }
 }

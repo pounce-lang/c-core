@@ -57,8 +57,6 @@ pdq_node_ptr pdq_init_node()
 	return item;
 };
 
-void pdq_free_node(pdq_node_ptr node);
-
 void pdq_free_list(pdq_node_ptr le) {
 	pdq_node_ptr next;
 	while(le) {

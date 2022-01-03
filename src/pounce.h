@@ -51,7 +51,7 @@ typedef struct pdq_instance
 	pdq_node_ptr rear;  // = NULL;
 } * pdq_instance_ptr;
 
-
+void pdq_free_node(pdq_node_ptr node);
 
 #ifdef __cplusplus
 }

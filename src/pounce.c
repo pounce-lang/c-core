@@ -1224,7 +1224,8 @@ dictionary *init_core_word_dictionary()
 #if SF_PRO_MICRO_RP2040
     dictionary_set(wd, "initLED", make_fun_node(pf_initWS2812LED));
     dictionary_set(wd, "setLED", make_fun_node(pf_setWS2812LED));
-    // dictionary_set(wd, "fillLED", make_fun_node(pf_fillWS2812LED));
+    dictionary_set(wd, "color", parse_list_node("[256 * 256 *] dip [256 *] dip2 + +"));
+    // [c+] [dup 16777214 > ! [100 + dup setLED c+] [1 drop] if-else] compose
 #endif
     return wd;
 }
