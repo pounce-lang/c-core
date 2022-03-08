@@ -987,6 +987,7 @@ pdq_node_ptr pf_gpioSet(stack_instance_ptr s, pdq_instance_ptr p)
     // nothing was added to the stack or the pl
     return NULL;
 };
+
 pdq_node_ptr pf_gpioGet(stack_instance_ptr s, pdq_instance_ptr p)
 {
     pdq_node_ptr pin = stack_pop(s);
@@ -1020,6 +1021,65 @@ pdq_node_ptr pf_play(stack_instance_ptr s, pdq_instance_ptr p)
         return NULL;
     }
     playback_list(phrase, p, true);
+    return NULL;
+};
+
+// for use in crouch and pounce
+
+pdq_node_ptr replace_recursive_in_phrase(pdq_node_ptr l, char * s ,pdq_node_ptr v) {
+    pdq_node_ptr link = l->data->w.list;
+    while (link)
+    {
+        if (link->type == STRING_T) {
+            if(strcmp(s, link->data->w.s) == 0) {
+                //TODO: memory leaks and handle substitute lists in 
+                //   link in the pdq_node_ptr v in place of the string.
+                link->data = dup_node(v)->data;
+                link->type = v->type;
+            }
+        }
+        if (link->type == LIST_T) {
+            replace_recursive_in_phrase(link, s, v);
+        }
+
+        link = link->previous;
+    }
+    return l;
+};
+
+pdq_node_ptr replace_each_in_phrase(stack_instance_ptr s, pdq_node_ptr p, pdq_node_ptr names_list) {
+    // for each name in names_list
+    pdq_node_ptr n = reverse_copy(names_list->data->w.list);
+    pdq_node_ptr stack_value;
+    while (n) {
+        // check name must be a string
+        if (n->type != STRING_T) {
+            printf("Error in crouch or pounce, names must be (unquoted) strings");
+            return NULL;
+        }
+        // pop the stack for a value associated with each name
+        stack_value = stack_pop(s);
+        if (stack_value == NULL || stack_value->type == LIST_T || stack_value->type == IFUNC_T) {
+            printf("Error in crouch or pounce, stack values for %s cannot be lists or functions", n->data->w.s);
+            return NULL;
+        }
+        replace_recursive_in_phrase(p, n->data->w.s, stack_value);
+        n = n->previous;
+    }
+    // free names_list
+    return p;
+};
+
+pdq_node_ptr pf_crouch(stack_instance_ptr s, pdq_instance_ptr p)
+{
+    pdq_node_ptr phrase = stack_pop(s);
+    pdq_node_ptr stack_names = stack_pop(s);
+    if (!phrase || phrase->type != LIST_T)
+    {
+        printf("'play' expected a list at the top of the stack\n");
+        return NULL;
+    }
+    stack_push_node(s, replace_each_in_phrase(s, phrase, stack_names));
     return NULL;
 };
 
@@ -1210,7 +1270,8 @@ dictionary *init_core_word_dictionary()
     dictionary_set(wd, "times", parse_list_node("dup 0 > [1 - swap dup dip2 swap times] [drop drop] if-else"));
     dictionary_set(wd, "rec", parse_list_node("dup 0 > [1 - [a swap cons] dip rec] [drop] if-else"));
 
-    dictionary_set(wd, "words", make_fun_node_introspect(pf_words));
+    dictionary_set(wd, "crouch", make_fun_node(pf_crouch));
+//    dictionary_set(wd, "words", make_fun_node_introspect(pf_words));
 #ifdef MICROPROCESSOR
     dictionary_set(wd, "gpioInit", make_fun_node(pf_gpioInit));
     dictionary_set(wd, "gpioSet", make_fun_node(pf_gpioSet));
