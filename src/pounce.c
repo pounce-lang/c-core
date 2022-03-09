@@ -38,10 +38,12 @@ void pdq_display(pdq_instance_ptr pq, char *sep)
 
     pdq_node_ptr n = pq->front;
 
-    if (!sep) {
+    if (!sep)
+    {
         pdq_attendance(n, "");
     }
-    else {
+    else
+    {
         pdq_attendance(n, sep);
     }
     printf("\n");
@@ -319,7 +321,7 @@ void playback_list(pdq_node_ptr phrase, pdq_instance_ptr p, bool free_up)
     }
     if (free_up)
     {
-        pdq_free_node(phrase);
+        pdq_free_list(phrase);
     }
     return;
 };
@@ -900,6 +902,33 @@ pdq_node_ptr pf_uncons(stack_instance_ptr s, pdq_instance_ptr p)
     return NULL;
 };
 
+pdq_node_ptr pf_reverse(stack_instance_ptr s, pdq_instance_ptr p)
+{
+    pdq_node_ptr e = stack_pop(s);
+    if (!e || e->type != LIST_T)
+    {
+        printf("'reverse' expected a list at the top of the stack\n");
+        return NULL;
+    }
+    pdq_node_ptr newrl = reverse_copy(e->data->w.list);
+    pdq_free_list(e);
+    stack_push_l(s, newrl);
+    // pdq_node_ptr l = e->data->w.list;
+    // pdq_node_ptr first;
+    // if (l)
+    // {
+    //     first = l;
+    //     e->data->w.list = l->previous;
+    //     first->previous = e->previous;
+    //     e->previous = first;
+    // }
+    // else
+    // {
+    //     printf("'uncons' expected a list with at least one element\n");
+    // }
+    return NULL;
+};
+
 pdq_node_ptr pf_if_else(stack_instance_ptr s, pdq_instance_ptr p)
 {
     pdq_node_ptr e = stack_pop(s);
@@ -994,10 +1023,12 @@ pdq_node_ptr pf_gpioGet(stack_instance_ptr s, pdq_instance_ptr p)
     if (pin && pin->type == INT_T)
     {
         bool val;
-        if (pin->data->w.i == -1) {
+        if (pin->data->w.i == -1)
+        {
             val = get_bootsel_button();
         }
-        else {
+        else
+        {
             val = get_gpio(pin->data->w.i);
         }
         pdq_free_node(pin);
@@ -1026,47 +1057,64 @@ pdq_node_ptr pf_play(stack_instance_ptr s, pdq_instance_ptr p)
 
 // for use in crouch and pounce
 
-pdq_node_ptr replace_recursive_in_phrase(pdq_node_ptr l, char * s ,pdq_node_ptr v) {
-    pdq_node_ptr link = l->data->w.list;
-    while (link)
+pdq_node_ptr replace_recursive_in_phrase(pdq_node_ptr l, char *s, pdq_node_ptr v)
+{
+    pdq_node_ptr ele = l->data->w.list;
+    pdq_node_ptr pre = NULL;
+    while (ele)
     {
-        if (link->type == STRING_T) {
-            if(strcmp(s, link->data->w.s) == 0) {
-                //TODO: memory leaks and handle substitute lists in 
-                //   link in the pdq_node_ptr v in place of the string.
-                link->data = dup_node(v)->data;
-                link->type = v->type;
+        if (ele->type == LIST_T)
+        {
+            replace_recursive_in_phrase(ele, s, v);
+        }
+        else if (ele->type == STRING_T && strcmp(s, ele->data->w.s) == 0)
+        {
+            pdq_node_ptr rep = dup_node(v);
+            rep->previous = ele->previous;
+            if (pre == NULL)
+            {
+                l->data->w.list = rep;
             }
+            else {
+                pre->previous = rep;
+            }
+            pdq_free_node(ele);
+            ele = rep;
         }
-        if (link->type == LIST_T) {
-            replace_recursive_in_phrase(link, s, v);
-        }
-
-        link = link->previous;
+        pre = ele;
+        ele = ele->previous;
     }
+    //pdq_free_node(v);
     return l;
 };
 
-pdq_node_ptr replace_each_in_phrase(stack_instance_ptr s, pdq_node_ptr p, pdq_node_ptr names_list) {
+pdq_node_ptr replace_each_in_phrase(stack_instance_ptr s, pdq_node_ptr ph, pdq_node_ptr names_list)
+{
+    pdq_node_ptr p = dup_node(ph);
     // for each name in names_list
-    pdq_node_ptr n = reverse_copy(names_list->data->w.list);
+    pdq_node_ptr l = names_list->data->w.list;
+    pdq_node_ptr n = reverse_copy(l);
     pdq_node_ptr stack_value;
-    while (n) {
+    while (n)
+    {
         // check name must be a string
-        if (n->type != STRING_T) {
+        if (n->type != STRING_T)
+        {
             printf("Error in crouch or pounce, names must be (unquoted) strings");
             return NULL;
         }
         // pop the stack for a value associated with each name
         stack_value = stack_pop(s);
-        if (stack_value == NULL || stack_value->type == LIST_T || stack_value->type == IFUNC_T) {
+        if (stack_value == NULL || stack_value->type == LIST_T || stack_value->type == IFUNC_T)
+        {
             printf("Error in crouch or pounce, stack values for %s cannot be lists or functions", n->data->w.s);
             return NULL;
         }
         replace_recursive_in_phrase(p, n->data->w.s, stack_value);
+        pdq_free_node(stack_value);
         n = n->previous;
     }
-    // free names_list
+    pdq_free_list(n);
     return p;
 };
 
@@ -1079,7 +1127,10 @@ pdq_node_ptr pf_crouch(stack_instance_ptr s, pdq_instance_ptr p)
         printf("'play' expected a list at the top of the stack\n");
         return NULL;
     }
+
     stack_push_node(s, replace_each_in_phrase(s, phrase, stack_names));
+    pdq_free_node(phrase);
+    pdq_free_node(stack_names);
     return NULL;
 };
 
@@ -1244,6 +1295,8 @@ dictionary *init_core_word_dictionary()
     dictionary_set(wd, "dup", make_fun_node(pf_dup));
     dictionary_set(wd, "cons", make_fun_node(pf_cons));
     dictionary_set(wd, "uncons", make_fun_node(pf_uncons));
+    dictionary_set(wd, "reverse", make_fun_node(pf_reverse));
+
     dictionary_set(wd, "play", make_fun_node(pf_play));
     dictionary_set(wd, "dip", make_fun_node(pf_dip));
     // concat binrec split < <= ... preping for quick-sort
