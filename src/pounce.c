@@ -331,15 +331,12 @@ stack_instance_ptr purr(stack_instance_ptr s, pdq_instance_ptr p, dictionary *d)
     while (!is_pdq_empty(p))
     {
         pdq_node_ptr w = pdq_dequeue(p);
-        // pdq_display_word(w);
         if (w && type_s(w))
         {
             pdq_node_ptr w_def = dictionary_get(d, w->data->w.s, NULL);
 
             if (w_def)
             {
-                // pdq_display_word(w_def);
-                // printf("\n");
                 pdq_free_node(w);
                 if (type_s(w_def))
                 {
@@ -524,7 +521,6 @@ pdq_node_ptr pf_strAppend(stack_instance_ptr s, pdq_instance_ptr p)
 
 pdq_node_ptr pf_boolOr(stack_instance_ptr s, pdq_instance_ptr p)
 {
-    // stack_display(s);
     pdq_node_ptr a = stack_pop(s);
     if (a && a->type == BOOL_T)
     {
@@ -551,7 +547,6 @@ pdq_node_ptr pf_boolOr(stack_instance_ptr s, pdq_instance_ptr p)
 };
 pdq_node_ptr pf_boolAnd(stack_instance_ptr s, pdq_instance_ptr p)
 {
-    // stack_display(s);
     pdq_node_ptr a = stack_pop(s);
     if (a && a->type == BOOL_T)
     {
@@ -578,7 +573,6 @@ pdq_node_ptr pf_boolAnd(stack_instance_ptr s, pdq_instance_ptr p)
 };
 pdq_node_ptr pf_boolNot(stack_instance_ptr s, pdq_instance_ptr p)
 {
-    // stack_display(s);
     pdq_node_ptr a = stack_pop(s);
     if (a && a->type == BOOL_T)
     {
@@ -595,7 +589,6 @@ pdq_node_ptr pf_boolNot(stack_instance_ptr s, pdq_instance_ptr p)
 };
 pdq_node_ptr pf_numAdd(stack_instance_ptr s, pdq_instance_ptr p)
 {
-    // stack_display(s);
     pdq_node_ptr a = stack_pop(s);
     if (a && (a->type == INT_T || a->type == REAL_T))
     {
@@ -636,7 +629,6 @@ pdq_node_ptr pf_numAdd(stack_instance_ptr s, pdq_instance_ptr p)
 };
 pdq_node_ptr pf_numSubtract(stack_instance_ptr s, pdq_instance_ptr p)
 {
-    // stack_display(s);
     pdq_node_ptr a = stack_pop(s);
     if (a && (a->type == INT_T || a->type == REAL_T))
     {
@@ -992,7 +984,6 @@ pdq_node_ptr pf_gpioInit(stack_instance_ptr s, pdq_instance_ptr p)
 
 pdq_node_ptr pf_gpioSet(stack_instance_ptr s, pdq_instance_ptr p)
 {
-    // stack_display(s);
     pdq_node_ptr a = stack_pop(s);
     if (a && a->type == STRING_T)
     {
@@ -1090,7 +1081,7 @@ pdq_node_ptr replace_recursive_in_phrase(pdq_node_ptr l, char *s, pdq_node_ptr v
 
 pdq_node_ptr replace_each_in_phrase(stack_instance_ptr s, pdq_node_ptr ph, pdq_node_ptr names_list)
 {
-    pdq_node_ptr p = ph; //copy_node(ph);
+    pdq_node_ptr p = ph; //copy_node(ph); // rm as excessive copy
     // for each name in names_list
     pdq_node_ptr l = names_list->data->w.list;
     pdq_node_ptr rev_l = reverse_copy(l);
@@ -1106,11 +1097,6 @@ pdq_node_ptr replace_each_in_phrase(stack_instance_ptr s, pdq_node_ptr ph, pdq_n
         }
         // pop the stack for a value associated with each name
         stack_value = stack_pop(s);
-        printf("n and stack_value\n");
-        pdq_display_word(n);
-        printf(" : ");
-        pdq_display_word(stack_value);
-        printf("\n");
         if (stack_value == NULL || stack_value->type == LIST_T || stack_value->type == IFUNC_T)
         {
             printf("Error in crouch or pounce, stack values for %s cannot be lists or functions", n->data->w.s);
@@ -1130,12 +1116,12 @@ pdq_node_ptr pf_crouch(stack_instance_ptr s, pdq_instance_ptr p)
     pdq_node_ptr stack_names = stack_pop(s);
     if (!phrase || phrase->type != LIST_T)
     {
-        printf("'play' expected a list at the top of the stack\n");
+        printf("'crouch' expected a list at the top of the stack\n");
         return NULL;
     }
 
     stack_push_node(s, replace_each_in_phrase(s, phrase, stack_names));
-    // pdq_free_node(phrase);
+    // pdq_free_node(phrase);  // rm as excessive copy
     pdq_free_node(stack_names);
     return NULL;
 };
