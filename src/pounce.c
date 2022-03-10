@@ -83,7 +83,7 @@ typedef struct parser_result
     int i;
 } * parser_result_ptr;
 
-pdq_node_ptr dup_node(pdq_node_ptr e);
+pdq_node_ptr copy_node(pdq_node_ptr e);
 
 // returns INT_T for int, REAL_T for float and STRING_T for string (NaN)
 char strToNumber(long *ival, double *fval, char *s)
@@ -301,7 +301,7 @@ pdq_node_ptr reverse_copy(pdq_node_ptr l)
     pdq_node_ptr link = NULL;
     while (l)
     {
-        rev = dup_node(l);
+        rev = copy_node(l);
         l = l->previous;
         rev->previous = link;
         link = rev;
@@ -413,14 +413,14 @@ pdq_node_ptr make_list_node(pdq_node_ptr l)
     pdq_node_ptr cur, prev, head = NULL, old = NULL;
     if (l)
     {
-        head = dup_node(l);
+        head = copy_node(l);
         prev = l->previous;
         cur = head;
         old = NULL;
         while (prev)
         {
             old = cur;
-            cur = dup_node(prev);
+            cur = copy_node(prev);
             old->previous = cur;
             prev = prev->previous;
         }
@@ -825,7 +825,7 @@ pdq_node_ptr pf_size(stack_instance_ptr s, pdq_instance_ptr p)
 };
 
 // duplicate a node, recursive for lists
-pdq_node_ptr dup_node(pdq_node_ptr e)
+pdq_node_ptr copy_node(pdq_node_ptr e)
 {
     if (!e)
         return NULL;
@@ -839,7 +839,7 @@ pdq_node_ptr dup_node(pdq_node_ptr e)
         return make_double_node(e->data->w.d);
     if (e->type == LIST_T)
         return make_list_node(e->data->w.list);
-    printf("Error in dup_node, type not handled.");
+    printf("Error in copy_node, type not handled.");
     return NULL;
 }
 
@@ -852,7 +852,7 @@ pdq_node_ptr pf_dup(stack_instance_ptr s, pdq_instance_ptr p)
         printf("'dup' expected an element at the top of the stack\n");
         return NULL;
     }
-    stack_push_node(s, dup_node(e));
+    stack_push_node(s, copy_node(e));
     return NULL;
 };
 pdq_node_ptr pf_cons(stack_instance_ptr s, pdq_instance_ptr p)
@@ -1069,7 +1069,7 @@ pdq_node_ptr replace_recursive_in_phrase(pdq_node_ptr l, char *s, pdq_node_ptr v
         }
         else if (ele->type == STRING_T && strcmp(s, ele->data->w.s) == 0)
         {
-            pdq_node_ptr rep = dup_node(v);
+            pdq_node_ptr rep = copy_node(v);
             rep->previous = ele->previous;
             if (pre == NULL)
             {
@@ -1090,10 +1090,11 @@ pdq_node_ptr replace_recursive_in_phrase(pdq_node_ptr l, char *s, pdq_node_ptr v
 
 pdq_node_ptr replace_each_in_phrase(stack_instance_ptr s, pdq_node_ptr ph, pdq_node_ptr names_list)
 {
-    pdq_node_ptr p = dup_node(ph);
+    pdq_node_ptr p = ph; //copy_node(ph);
     // for each name in names_list
     pdq_node_ptr l = names_list->data->w.list;
-    pdq_node_ptr n = reverse_copy(l);
+    pdq_node_ptr rev_l = reverse_copy(l);
+    pdq_node_ptr n = rev_l; 
     pdq_node_ptr stack_value;
     while (n)
     {
@@ -1105,6 +1106,11 @@ pdq_node_ptr replace_each_in_phrase(stack_instance_ptr s, pdq_node_ptr ph, pdq_n
         }
         // pop the stack for a value associated with each name
         stack_value = stack_pop(s);
+        printf("n and stack_value\n");
+        pdq_display_word(n);
+        printf(" : ");
+        pdq_display_word(stack_value);
+        printf("\n");
         if (stack_value == NULL || stack_value->type == LIST_T || stack_value->type == IFUNC_T)
         {
             printf("Error in crouch or pounce, stack values for %s cannot be lists or functions", n->data->w.s);
@@ -1114,7 +1120,7 @@ pdq_node_ptr replace_each_in_phrase(stack_instance_ptr s, pdq_node_ptr ph, pdq_n
         pdq_free_node(stack_value);
         n = n->previous;
     }
-    pdq_free_list(n);
+    pdq_free_list(rev_l);
     return p;
 };
 
@@ -1129,7 +1135,7 @@ pdq_node_ptr pf_crouch(stack_instance_ptr s, pdq_instance_ptr p)
     }
 
     stack_push_node(s, replace_each_in_phrase(s, phrase, stack_names));
-    pdq_free_node(phrase);
+    // pdq_free_node(phrase);
     pdq_free_node(stack_names);
     return NULL;
 };
