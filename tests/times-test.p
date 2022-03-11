@@ -1,1 +1,1 @@
-0 [1 +] 1 dup 0 > [1 - swap dup dip2 swap] [drop drop] if-else
+0.0 1.0 [dup2 + [drop] dip2] 12 times / dup 0.618025 > swap 0.618027 > ! &&

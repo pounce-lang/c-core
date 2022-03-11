@@ -7,7 +7,7 @@
 pdq_node_ptr make_string_node(char * s){
     pdq_node_ptr n = pdq_init_node();
     n->type = STRING_T;
-    n->data->w.s = xstrcp(s);
+    n->word.s = xstrcp(s);
     return n;
 }
 
@@ -19,7 +19,7 @@ void main()
     pdq_enqueue_s(pq, STRING_T, "test0");
     pdq_enqueue_s(pq, STRING_T, "test");
     temp_value = pdq_dequeue(pq);
-    if (type_s(temp_value) && strcmp(temp_value->data->w.s, "test0"))
+    if (type_s(temp_value) && strcmp(temp_value->word.s, "test0"))
     {
         all_passing = false;
         printf("Assertion #1 found [%d] an unexpected value was pdq_dequeued\n", temp_value);
@@ -46,14 +46,14 @@ void main()
     pdq_enqueue_s(pq, STRING_T, "test-b");
     pdq_enqueue_s(pq, STRING_T, "test-c");
     temp_value = pdq_dequeue(pq);
-    if (type_s(temp_value) && strcmp(temp_value->data->w.s, "test-a"))
+    if (type_s(temp_value) && strcmp(temp_value->word.s, "test-a"))
     {
         all_passing = false;
         printf("Assertion #4.1 found [%d] an unexpected value was pdq_dequeued\n", temp_value);
     }
     pdq_free_node(temp_value);
     temp_value = pdq_dequeue(pq);
-    if (type_s(temp_value) && strcmp(temp_value->data->w.s, "test-b"))
+    if (type_s(temp_value) && strcmp(temp_value->word.s, "test-b"))
     {
         all_passing = false;
         printf("Assertion #4.2 found [%d] an unexpected value was pdq_dequeued\n", temp_value);
@@ -62,7 +62,7 @@ void main()
     // test requeue
     pdq_requeue_s(pq, "test-z");
     temp_value = pdq_dequeue(pq);
-    if (type_s(temp_value) && strcmp(temp_value->data->w.s, "test-z"))
+    if (type_s(temp_value) && strcmp(temp_value->word.s, "test-z"))
     {
         all_passing = false;
         printf("Assertion #5 found [%d] an unexpected value was pdq_dequeued\n", temp_value);
@@ -71,14 +71,14 @@ void main()
     pdq_requeue_s(pq, "test 5");
     pdq_requeue_s(pq, "test 4");
     temp_value = pdq_dequeue(pq);
-    if (type_s(temp_value) && strcmp(temp_value->data->w.s, "test 4"))
+    if (type_s(temp_value) && strcmp(temp_value->word.s, "test 4"))
     {
         all_passing = false;
         printf("Assertion #6 found [%d] an unexpected value was pdq_dequeued\n", temp_value);
     }
     pdq_free_node(temp_value);
     temp_value = pdq_dequeue(pq);
-    if (type_s(temp_value) && strcmp(temp_value->data->w.s, "test 5"))
+    if (type_s(temp_value) && strcmp(temp_value->word.s, "test 5"))
     {
         all_passing = false;
         printf("Assertion #7 found [%d] an unexpected value was pdq_dequeued\n", temp_value);

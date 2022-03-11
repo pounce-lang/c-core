@@ -1,1 +1,1 @@
-[[] 1 2 [3 4 5]] reverse
+[[] 1 2 [3 4 5]] reverse size 4 = swap uncons swap size 3 = swap drop swap drop &&

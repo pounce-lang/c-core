@@ -1,1 +1,1 @@
-[ ] dup
+[] dup size 0 = swap drop swap size 0 = swap drop &&

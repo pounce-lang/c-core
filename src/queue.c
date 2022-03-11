@@ -28,18 +28,6 @@ static char *xstrcp(const char *s)
 	return t;
 }
 
-word_ptr word_init()
-{
-	word_ptr new_word = (word_ptr)malloc(sizeof(struct word_struct));
-
-	if (new_word == NULL)
-	{
-		printf("could not malloc word_struct union\n");
-		return NULL;
-	}
-	// printf("returning new word %d\n", &new_word);
-	return new_word;
-};
 pdq_node_ptr pdq_init_node()
 {
 	pdq_node_ptr item = (pdq_node_ptr)malloc(sizeof(struct pdq_node));
@@ -47,12 +35,6 @@ pdq_node_ptr pdq_init_node()
 	{
 		return NULL;
 	}
-	word_ptr wp = word_init();
-	if (wp == NULL)
-	{
-		return NULL;
-	}
-	item->data = wp;
 	item->previous = NULL;
 	return item;
 };
@@ -70,17 +52,12 @@ void pdq_free_node(pdq_node_ptr node)
 {
 	if (type_s(node))
 	{
-		free(node->data->w.s);
+		free(node->word.s);
 	}
 	if (node->type == LIST_T)
 	{
-		pdq_free_list(node->data->w.list);
+		pdq_free_list(node->word.list);
 	}
-	// if (node->type == IFUNC_T)
-	// {
-	// 	free(node->data->w.fun);
-	// }
-	free(node->data);
 	free(node);
 }
 
@@ -117,7 +94,7 @@ bool pdq_requeue_s(pdq_instance_ptr pq, char *value)
 		return false;
 	}
 
-	item->data->w.s = xstrcp(value);
+	item->word.s = xstrcp(value);
 	item->type = STRING_T;
 
 	if (pq->front == NULL)
@@ -175,7 +152,7 @@ bool pdq_enqueue_l(pdq_instance_ptr pq, pdq_node_ptr value)
 	{
 		return false;
 	}
-	item->data->w.list = value;
+	item->word.list = value;
 	item->type = LIST_T;
 
 	return pdq_enqueue(pq, item);
@@ -187,7 +164,7 @@ bool pdq_enqueue_b(pdq_instance_ptr pq, bool value)
 	{
 		return false;
 	}
-	item->data->w.b = value;
+	item->word.b = value;
 	item->type = BOOL_T;
 
 	return pdq_enqueue(pq, item);
@@ -199,7 +176,7 @@ bool pdq_enqueue_i(pdq_instance_ptr pq, long value)
 	{
 		return false;
 	}
-	item->data->w.i = value;
+	item->word.i = value;
 	item->type = INT_T;
 
 	return pdq_enqueue(pq, item);
@@ -211,7 +188,7 @@ bool pdq_enqueue_d(pdq_instance_ptr pq, double value)
 	{
 		return false;
 	}
-	item->data->w.d = value;
+	item->word.d = value;
 	item->type = REAL_T;
 
 	return pdq_enqueue(pq, item);
@@ -223,7 +200,7 @@ bool pdq_enqueue_s(pdq_instance_ptr pq, char t, char *value)
 	{
 		return false;
 	}
-	item->data->w.s = xstrcp(value);
+	item->word.s = xstrcp(value);
 	item->type = t;
 
 	return pdq_enqueue(pq, item);

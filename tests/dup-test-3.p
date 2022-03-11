@@ -1,1 +1,1 @@
-[ [ 2] ] dup
+[ [ 2] ] dup uncons swap uncons swap 2 = [[drop] dip] 2 times swap uncons swap uncons swap 2 = [[drop] dip] 2 times &&

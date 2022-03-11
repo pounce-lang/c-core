@@ -401,27 +401,27 @@ void pdq_display_word(pdq_node_ptr node)
     if (type_s(node))
     {
         if (node->type == STRING_T) {
-            printf("%s", node->data->w.s);
+            printf("%s", node->word.s);
         }
         else {
-            printf("%c%s%c", node->type, node->data->w.s, node->type);
+            printf("%c%s%c", node->type, node->word.s, node->type);
         }
     }
     else if (node->type == BOOL_T)
     {
-        printf("%s", node->data->w.b ? "true": "false");
+        printf("%s", node->word.b ? "true": "false");
     }
     else if (node->type == INT_T)
     {
-        printf("%d", node->data->w.i);
+        printf("%d", node->word.i);
     }
     else if (node->type == REAL_T)
     {
-        printf("%f", node->data->w.d);
+        printf("%f", node->word.d);
     }
     else if (node->type == LIST_T)
     {
-        pdq_attendance(node->data->w.list, " ");
+        pdq_attendance(node->word.list, " ");
     }
     else if (node->type == IFUNC_T)
     {

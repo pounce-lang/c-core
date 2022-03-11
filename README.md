@@ -14,7 +14,10 @@
 ### Feed input to the REPL
 `./dist/repl -i tests/source.p`
 
-### some tests
+### Pounce language tests
+./test-runner.sh
+
+### internal ADT tests
 tests that exercise the stack and queue (internal workings) DataTypes
 `gcc -o ./dist/tests ./src/tests.c`
 

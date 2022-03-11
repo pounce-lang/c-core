@@ -45,8 +45,8 @@ int main(int argc, char **argv)
             fprintf(stderr, "Error: %s is unable to open file %s\n", argv[0], argv[1]);
             return 1;
         }
-        char pp[1024];
-        fgets(pp, 1024, program_source);
+        char pp[4096];
+        fgets(pp, 4096, program_source);
         fclose(program_source);
         // FILE *result_stack_out = fopen(input_fn, "w");
         // if (!result_stack_out)

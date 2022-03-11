@@ -26,13 +26,13 @@ typedef struct word_struct
 		double d;
 		struct pdq_node *list;
 		struct pdq_node *(*fun)(stack_instance_ptr, pdq_instance_ptr, dictionary_ptr); 
-	} w;
+	};
 } * word_ptr;
 
 typedef struct pdq_node
 {
 	char type; // (b)oolean, (s)tring, (i)nt (long), (l)ist, (f)unction (d)ouble presision float
-	word_ptr data;
+	struct word_struct word;
 	struct pdq_node *previous;
 
 } * pdq_node_ptr;

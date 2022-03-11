@@ -1,1 +1,1 @@
-[a [b] c] dup
+true [1 [5] 3] dup uncons uncons uncons size 0 = swap drop swap 3 = && swap uncons drop 5 = && swap 1 = && swap size 3 = swap drop && &&

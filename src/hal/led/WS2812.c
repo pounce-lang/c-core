@@ -41,7 +41,7 @@ pdq_node_ptr pf_setWS2812LED(stack_instance_ptr s, pdq_instance_ptr p) {
         return NULL; }
     if (a->type == INT_T)
     {
-        put_pixel(a->data->w.i);
+        put_pixel(a->word.i);
             
     }
     pdq_free_node(a);

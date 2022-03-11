@@ -1,1 +1,1 @@
-0 1 [dup] dip dup [swap] dip + [dup] dip dup [swap] dip + [dup] dip dup [swap] dip + [dup] dip dup [swap] dip + [dup] dip dup [swap] dip + [dup] dip dup [swap] dip + [dup] dip dup [swap] dip +
+0 1 [dup] dip dup [swap] dip + [dup] dip dup [swap] dip + [dup] dip dup [swap] dip + [dup] dip dup [swap] dip + [dup] dip dup [swap] dip + [dup] dip dup [swap] dip + [dup] dip dup [swap] dip + 

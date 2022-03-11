@@ -11,12 +11,6 @@ pdq_node_ptr stack_init_node() {
 	{
 		return false;
 	}
-	word_ptr wp = word_init();
-	if (wp == NULL)
-	{
-		return false;
-	}
-	item->data = wp;
 	item->previous = NULL;
 	return item;
 }
@@ -49,7 +43,7 @@ bool is_stack_empty(stack_instance_ptr ps)
 bool stack_push_l(stack_instance_ptr ps, pdq_node_ptr value)
 {
 	pdq_node_ptr item = stack_init_node();
-	item->data->w.list = value;
+	item->word.list = value;
 	item->type = LIST_T;
 
 	if (ps->top == NULL)
@@ -65,7 +59,7 @@ bool stack_push_l(stack_instance_ptr ps, pdq_node_ptr value)
 bool stack_push_s(stack_instance_ptr ps, char *value)
 {
 	pdq_node_ptr item = stack_init_node();
-	item->data->w.s = xstrcp(value);
+	item->word.s = xstrcp(value);
 	item->type = STRING_T;
 
 	if (ps->top == NULL)
@@ -93,7 +87,7 @@ bool stack_push_node(stack_instance_ptr ps, pdq_node_ptr n)
 bool stack_push_b(stack_instance_ptr ps, bool value)
 {
 	pdq_node_ptr item = stack_init_node();
-	item->data->w.b = value;
+	item->word.b = value;
 	item->type = BOOL_T;
 
 	if (ps->top == NULL)
@@ -109,7 +103,7 @@ bool stack_push_b(stack_instance_ptr ps, bool value)
 bool stack_push_i(stack_instance_ptr ps, long value)
 {
 	pdq_node_ptr item = stack_init_node();
-	item->data->w.i = value;
+	item->word.i = value;
 	item->type = INT_T;
 
 	if (ps->top == NULL)
@@ -125,7 +119,7 @@ bool stack_push_i(stack_instance_ptr ps, long value)
 bool stack_push_d(stack_instance_ptr ps, double value)
 {
 	pdq_node_ptr item = stack_init_node();
-	item->data->w.d = value;
+	item->word.d = value;
 	item->type = REAL_T;
 
 	if (ps->top == NULL)

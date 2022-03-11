@@ -7,7 +7,7 @@
 pdq_node_ptr make_string_node(char * s){
     pdq_node_ptr n = pdq_init_node();
     n->type = STRING_T;
-    n->data->w.s = xstrcp(s);
+    n->word.s = xstrcp(s);
     return n;
 }
 
@@ -19,7 +19,7 @@ int main()
     stack_push_s(ps, "test0");
     stack_push_s(ps, "test");
     temp_value = stack_pop(ps);
-    if (type_s(temp_value) && strcmp(temp_value->data->w.s, "test"))
+    if (type_s(temp_value) && strcmp(temp_value->word.s, "test"))
     {
         all_passing = false;
         printf("Assertion #1 found an unexpected value was stack_pop'ed\n");
@@ -51,7 +51,7 @@ int main()
     stack_push_s(ps, "test-b");
     stack_push_s(ps, "test-c");
     temp_value = stack_pop(ps);
-    if (type_s(temp_value) && strcmp(temp_value->data->w.s, "test-c"))
+    if (type_s(temp_value) && strcmp(temp_value->word.s, "test-c"))
     {
         all_passing = false;
         printf("Assertion #4.1 found [%d] an unexpected value was stack_pop'ed\n", temp_value);
@@ -59,7 +59,7 @@ int main()
     }
     pdq_free_node(temp_value);
     temp_value = stack_pop(ps);
-    if (type_s(temp_value) && strcmp(temp_value->data->w.s, "test-b"))
+    if (type_s(temp_value) && strcmp(temp_value->word.s, "test-b"))
     {
         all_passing = false;
         printf("Assertion #4.2 found [%d] an unexpected value was stack_pop'ed\n", temp_value);
@@ -69,7 +69,7 @@ int main()
     stack_push_s(ps, "test 5");
     stack_push_s(ps, "test 4");
     temp_value = stack_pop(ps);
-    if (type_s(temp_value) && strcmp(temp_value->data->w.s, "test 4"))
+    if (type_s(temp_value) && strcmp(temp_value->word.s, "test 4"))
     {
         all_passing = false;
         printf("Assertion #6 found [%d] an unexpected value was stack_pop'ed\n", temp_value);
@@ -77,7 +77,7 @@ int main()
     }
     pdq_free_node(temp_value);
     temp_value = stack_pop(ps);
-    if (type_s(temp_value) && strcmp(temp_value->data->w.s, "test 5"))
+    if (type_s(temp_value) && strcmp(temp_value->word.s, "test 5"))
     {
         all_passing = false;
         printf("Assertion #7 found [%d] an unexpected value was stack_pop'ed\n", temp_value);

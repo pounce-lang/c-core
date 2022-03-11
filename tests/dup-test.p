@@ -1,1 +1,1 @@
-[[][[]]] dup
+[[][[]]] dup size 2 = swap uncons swap size 0 = swap drop swap drop && swap size 2 = swap uncons swap size 0 = swap drop swap drop && && 
