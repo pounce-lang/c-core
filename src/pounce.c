@@ -18,7 +18,7 @@ void stack_display(stack_instance_ptr ps)
 {
     if (is_stack_empty(ps))
     {
-        printf("[] This stack is empty!\n");
+        printf("[] The stack is empty!\n");
         return;
     }
 
@@ -307,6 +307,66 @@ pdq_node_ptr reverse_copy(pdq_node_ptr l)
         link = rev;
     }
     return rev;
+}
+
+pdq_node_ptr list_getLast(pdq_node_ptr l)
+{
+    pdq_node_ptr link = l->previous;
+    while (l && link)
+    {
+        l = l->previous;
+        link = l->previous;
+    }
+    return l;
+}
+
+bool node_cmp(pdq_node_ptr a, pdq_node_ptr b);
+
+bool list_cmp(pdq_node_ptr a, pdq_node_ptr b)
+{
+    if (!a && !b) return true;
+    pdq_node_ptr a_t = a;
+    pdq_node_ptr b_t = b;
+    while (a_t && b_t)
+    {
+        if (!node_cmp(a_t, b_t)) 
+        {
+            return false;
+        }
+        a_t = a_t->previous;
+        b_t = b_t->previous;
+    }
+    if (!a_t && !b_t) 
+        return true;
+    return false;
+}
+
+bool node_cmp(pdq_node_ptr a, pdq_node_ptr b) {
+    if ((a->type == INT_T && b->type == INT_T) || (a->type == REAL_T && b->type == REAL_T))
+    {
+        if (a->type == INT_T && b->type == INT_T)
+        {
+            return (b->word.i == a->word.i);
+        }
+        else if (a->type == REAL_T && b->type == REAL_T)
+        {
+            return (b->word.d == a->word.d);
+        }
+        else
+        {
+            printf("'=' both args to be integer or both to be floating point, but got a mix\n");
+            return false;
+        }
+    } else if (a->type == LIST_T && b->type == LIST_T) {
+        return list_cmp(a->word.list, b->word.list);
+    } else if (a->type == STRING_T && b->type == STRING_T) {
+        return (strcmp(a->word.s, b->word.s) == 0);
+    }
+    printf("'=' unhandled types %c and %c\n", a->type, b->type);
+    // pdq_display_word(a);
+    // pdq_display_word(b);
+    return false;
+
 }
 
 void playback_list(pdq_node_ptr phrase, pdq_instance_ptr p, bool free_up)
@@ -870,6 +930,29 @@ pdq_node_ptr pf_cons(stack_instance_ptr s, pdq_instance_ptr p)
     }
     return NULL;
 };
+pdq_node_ptr pf_concatArr(stack_instance_ptr s, pdq_instance_ptr p)
+{
+    pdq_node_ptr list1 = stack_pop(s);
+    if (list1 && list1->type == LIST_T)
+    {
+        pdq_node_ptr list0 = s->top;
+        if (list0 && list0->type == LIST_T)
+        {
+            pdq_node_ptr lastIn0 = list_getLast(list0->word.list);
+            lastIn0->previous = list1->word.list;
+            free(list1);
+        }
+        else
+        {
+            printf("'concat' expected top(-1) to be a list.\n");
+        }
+    }
+    else
+    {
+        printf("'concat' expected the top the stack to be a list\n");
+    }
+    return NULL;
+};
 pdq_node_ptr pf_uncons(stack_instance_ptr s, pdq_instance_ptr p)
 {
     pdq_node_ptr e = s->top;
@@ -1163,31 +1246,11 @@ pdq_node_ptr pf_eq(stack_instance_ptr s, pdq_instance_ptr p)
     pdq_node_ptr b = stack_pop(s);
     if (a == NULL || b == NULL)
         return NULL;
-    if ((a->type == INT_T && b->type == INT_T) || (a->type == REAL_T && b->type == REAL_T))
-    {
-        if (a->type == INT_T && b->type == INT_T)
-        {
-            bool prod = (b->word.i == a->word.i);
-            pdq_free_node(a);
-            pdq_free_node(b);
-            return make_boolean_node(prod);
-        }
-        else if (a->type == REAL_T && b->type == REAL_T)
-        {
-            bool prod = (b->word.d == a->word.d);
-            pdq_free_node(a);
-            pdq_free_node(b);
-            return make_boolean_node(prod);
-        }
-        else
-        {
-            printf("'=' both args to be integer or both to be floating point, but got a mix\n");
-            stack_push_node(s, b);
-            stack_push_node(s, a);
-            return NULL;
-        }
-    } else if (a->type == LIST_T && b->type == LIST_T) {
-        return NULL;
+    else if(a && b) {
+        bool result = node_cmp(a, b);
+        pdq_free_node(a);
+        pdq_free_node(b);
+        return make_boolean_node(result);
     }
     else
     {
@@ -1260,7 +1323,7 @@ pdq_node_ptr pf_words(stack_instance_ptr s, pdq_instance_ptr p, dictionary *d)
 
 dictionary *init_core_word_dictionary()
 {
-    dictionary *wd = dictionary_new(32);
+    dictionary *wd = dictionary_new(64);
     dictionary_set(wd, "dup2", parse_list_node("[dup] dip dup [swap] dip"));
     dictionary_set(wd, "strAppend", make_fun_node(pf_strAppend));
     dictionary_set(wd, "+", make_fun_node(pf_numAdd));
@@ -1288,7 +1351,7 @@ dictionary *init_core_word_dictionary()
     // dictionary_set(wd, ">=", make_fun_node(pf_numGtEq));
     // dictionary_set(wd, "==", make_fun_node(pf_numEq));
     // dictionary_set(wd, "split", make_fun_node(pf_arrSplit));
-    // dictionary_set(wd, "concat", make_fun_node(pf_arrConcat));
+    dictionary_set(wd, "concat", make_fun_node(pf_concatArr));
     // dictionary_set(wd, "binrec", make_fun_node(pf_binrec));
     // // // const block = toPLOrNull(s?.pop());
     // // //         const item2 = s?.pop();

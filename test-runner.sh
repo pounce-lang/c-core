@@ -14,7 +14,8 @@
 ./dist/repl -i tests/play-test.p
 ./dist/repl -i tests/reverse-list.p
 ./dist/repl -i tests/times-test.p
-# ./dist/repl -i tests/uncons-test.p
+./dist/repl -i tests/concat-test.p
+./dist/repl -i tests/uncons-test.p
 
 echo "valgrind "
 valgrind --leak-check=yes -q ./dist/repl -i tests/crouch-test.p
@@ -29,4 +30,5 @@ valgrind --leak-check=yes -q ./dist/repl -i tests/if-else-test.p
 valgrind --leak-check=yes -q ./dist/repl -i tests/play-test.p
 valgrind --leak-check=yes -q ./dist/repl -i tests/reverse-list.p
 valgrind --leak-check=yes -q ./dist/repl -i tests/times-test.p
-# valgrind --leak-check=yes -q ./dist/repl -i tests/uncons-test.p
+valgrind --leak-check=yes -q ./dist/repl -i tests/concat-test.p
+valgrind --leak-check=yes -q ./dist/repl -i tests/uncons-test.p
