@@ -930,6 +930,30 @@ pdq_node_ptr pf_cons(stack_instance_ptr s, pdq_instance_ptr p)
     }
     return NULL;
 };
+
+// pdq_node_ptr pf_splitArr(stack_instance_ptr s, pdq_instance_ptr p)
+// {
+//     pdq_node_ptr op = stack_pop(s);
+//     if (op && op->type == LIST_T)
+//     {
+//         pdq_node_ptr list0 = s->top;
+//         if (list0 && list0->type == LIST_T)
+//         {
+//             pdq_node_ptr lastIn0 = list_getLast(list0->word.list);
+//             lastIn0->previous = op->word.list;
+//             free(list1);
+//         }
+//         else
+//         {
+//             printf("'concat' expected top(-1) to be a list.\n");
+//         }
+//     }
+//     else
+//     {
+//         printf("'concat' expected the top the stack to be a list\n");
+//     }
+//     return NULL;
+// };
 pdq_node_ptr pf_concatArr(stack_instance_ptr s, pdq_instance_ptr p)
 {
     pdq_node_ptr list1 = stack_pop(s);
@@ -1181,9 +1205,9 @@ pdq_node_ptr replace_each_in_phrase(stack_instance_ptr s, pdq_node_ptr ph, pdq_n
         }
         // pop the stack for a value associated with each name
         stack_value = stack_pop(s);
-        if (stack_value == NULL || stack_value->type == LIST_T || stack_value->type == IFUNC_T)
+        if (stack_value == NULL || stack_value->type == IFUNC_T)
         {
-            printf("Error in crouch or pounce, stack values for %s cannot be lists or functions", n->word.s);
+            printf("Error in crouch or pounce, stack values for %s cannot be a function", n->word.s);
             return NULL;
         }
         replace_recursive_in_phrase(p, n->word.s, stack_value);
@@ -1350,7 +1374,16 @@ dictionary *init_core_word_dictionary()
     dictionary_set(wd, "=", make_fun_node(pf_eq));
     // dictionary_set(wd, ">=", make_fun_node(pf_numGtEq));
     // dictionary_set(wd, "==", make_fun_node(pf_numEq));
-    // dictionary_set(wd, "split", make_fun_node(pf_arrSplit));
+    // 
+    dictionary_set(wd, "map", parse_list_node("[size] dip [arr s ph] [arr [] [[uncons [ph play] dip swap] dip cons] s times] crouch play reverse [drop] dip"));
+
+
+//    dictionary_set(wd, "map", parse_list_node("[arr ph] [arr size [] swap [[uncons [ph play] dip swap] dip cons ] swap times] crouch play drop reverse"));
+    dictionary_set(wd, "filter", parse_list_node("[arr ph] [[] arr size [uncons [ph play swap cons] dip] swap times] crouch play drop reverse"));
+
+    // [!] data fn cons filter concat
+    //dictionary_set(wd, "filter", parse_list_node("[arr fn] [[] arr size 0 > [uncons [dup] dip swap fn play [[swap cons]dip][]if-else] [] if-else ] crouch play"));
+    dictionary_set(wd, "split", parse_list_node("[arr data fn] [arr data fn cons filter] crouch play"));
     dictionary_set(wd, "concat", make_fun_node(pf_concatArr));
     // dictionary_set(wd, "binrec", make_fun_node(pf_binrec));
     // // // const block = toPLOrNull(s?.pop());
