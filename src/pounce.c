@@ -83,7 +83,7 @@ typedef struct parser_result
     int i;
 } * parser_result_ptr;
 
-pdq_node_ptr copy_node(pdq_node_ptr e);
+pdq_node_ptr copy_node(pdq_node_ptr e, bool mark_replacement);
 
 // returns INT_T for int, REAL_T for float and STRING_T for string (NaN)
 char strToNumber(long *ival, double *fval, char *s)
@@ -301,7 +301,7 @@ pdq_node_ptr reverse_copy(pdq_node_ptr l)
     pdq_node_ptr link = NULL;
     while (l)
     {
-        rev = copy_node(l);
+        rev = copy_node(l, false);
         l = l->previous;
         rev->previous = link;
         link = rev;
@@ -470,14 +470,14 @@ pdq_node_ptr make_list_node(pdq_node_ptr l)
     pdq_node_ptr cur, prev, head = NULL, old = NULL;
     if (l)
     {
-        head = copy_node(l);
+        head = copy_node(l, false);
         prev = l->previous;
         cur = head;
         old = NULL;
         while (prev)
         {
             old = cur;
-            cur = copy_node(prev);
+            cur = copy_node(prev, false);
             old->previous = cur;
             prev = prev->previous;
         }
@@ -877,12 +877,17 @@ pdq_node_ptr pf_size(stack_instance_ptr s, pdq_instance_ptr p)
 };
 
 // duplicate a node, recursive for lists
-pdq_node_ptr copy_node(pdq_node_ptr e)
+pdq_node_ptr copy_node(pdq_node_ptr e, bool mark_replacement)
 {
     if (!e)
         return NULL;
     if (type_s(e))
-        return make_string_node(e->type, e->word.s);
+        if (mark_replacement) {
+            return make_string_node('r', e->word.s);
+        }
+        else {
+            return make_string_node(e->type, e->word.s);
+        }
     if (e->type == INT_T)
         return make_integer_node(e->word.i);
     if (e->type == BOOL_T)
@@ -904,7 +909,7 @@ pdq_node_ptr pf_dup(stack_instance_ptr s, pdq_instance_ptr p)
         printf("'dup' expected an element at the top of the stack\n");
         return NULL;
     }
-    stack_push_node(s, copy_node(e));
+    stack_push_node(s, copy_node(e, false));
     return NULL;
 };
 pdq_node_ptr pf_cons(stack_instance_ptr s, pdq_instance_ptr p)
@@ -1167,7 +1172,7 @@ pdq_node_ptr replace_recursive_in_phrase(pdq_node_ptr l, char *s, pdq_node_ptr v
         }
         else if (ele->type == STRING_T && strcmp(s, ele->word.s) == 0)
         {
-            pdq_node_ptr rep = copy_node(v);
+            pdq_node_ptr rep = copy_node(v, true);
             rep->previous = ele->previous;
             if (pre == NULL)
             {
@@ -1187,9 +1192,25 @@ pdq_node_ptr replace_recursive_in_phrase(pdq_node_ptr l, char *s, pdq_node_ptr v
     return l;
 };
 
+void clean_marked_replacements(pdq_node_ptr p) {
+    while (p)
+    {
+        // check name must be a string
+        if (p->type == 'r')
+        {
+            p->type = STRING_T;
+        }
+        if (p->type == LIST_T)
+        {
+            clean_marked_replacements(p->word.list);
+        }
+        p = p->previous;
+    }
+}
+
 pdq_node_ptr replace_each_in_phrase(stack_instance_ptr s, pdq_node_ptr ph, pdq_node_ptr names_list)
 {
-    pdq_node_ptr p = ph; //copy_node(ph); // rm as excessive copy
+    pdq_node_ptr p = ph; //copy_node(ph, true); // rm as excessive copy
     // for each name in names_list
     pdq_node_ptr l = names_list->word.list;
     pdq_node_ptr rev_l = reverse_copy(l);
@@ -1215,6 +1236,8 @@ pdq_node_ptr replace_each_in_phrase(stack_instance_ptr s, pdq_node_ptr ph, pdq_n
         n = n->previous;
     }
     pdq_free_list(rev_l);
+    // clean marked_replacements as STRING_T
+    clean_marked_replacements(p);
     return p;
 };
 
@@ -1368,23 +1391,30 @@ dictionary *init_core_word_dictionary()
     dictionary_set(wd, "play", make_fun_node(pf_play));
     dictionary_set(wd, "dip", make_fun_node(pf_dip));
     // concat binrec split < <= ... preping for quick-sort
+    dictionary_set(wd, "<", parse_list_node(">= !"));
+    dictionary_set(wd, "<=", parse_list_node("> !"));
     // dictionary_set(wd, "<", make_fun_node(pf_numLt));
     // dictionary_set(wd, "<=", make_fun_node(pf_numLtEq));
+    dictionary_set(wd, ">=", parse_list_node("dup2 > [=] dip ||"));
     dictionary_set(wd, ">", make_fun_node(pf_numGt));
     dictionary_set(wd, "=", make_fun_node(pf_eq));
     // dictionary_set(wd, ">=", make_fun_node(pf_numGtEq));
     // dictionary_set(wd, "==", make_fun_node(pf_numEq));
     // 
-    dictionary_set(wd, "map", parse_list_node("[size] dip [arr s ph] [arr [] [[uncons [ph play] dip swap] dip cons] s times] crouch play reverse [drop] dip"));
+    dictionary_set(wd, "map", parse_list_node(   "[size] dip [arr s ph] [arr [] [[uncons [ph play] dip swap] dip cons] s times] crouch play reverse [drop] dip"));
+    
+    dictionary_set(wd, "filter", parse_list_node("[size] dip [arr n ph] [arr [] [[uncons] dip [dup [ph play] dip] dip2 [rotate] dip rollup [swap cons] [drop] if-else] n times] crouch play reverse [drop] dip"));
+    //                                             1    0     1        0 1    21 23      2     3    4       3    2      3      2            3         2 3    2        1        0                     1    0     
 
-
-//    dictionary_set(wd, "map", parse_list_node("[arr ph] [arr size [] swap [[uncons [ph play] dip swap] dip cons ] swap times] crouch play drop reverse"));
-    dictionary_set(wd, "filter", parse_list_node("[arr ph] [[] arr size [uncons [ph play swap cons] dip] swap times] crouch play drop reverse"));
+    dictionary_set(wd, "rotate", parse_list_node("[a b c][c b a] crouch play"));
+    dictionary_set(wd, "rollup", parse_list_node("[a b c][c a b] crouch play"));
+    dictionary_set(wd, "rolldn", parse_list_node("[a b c][b c a] crouch play"));
 
     // [!] data fn cons filter concat
     //dictionary_set(wd, "filter", parse_list_node("[arr fn] [[] arr size 0 > [uncons [dup] dip swap fn play [[swap cons]dip][]if-else] [] if-else ] crouch play"));
     dictionary_set(wd, "split", parse_list_node("[arr data fn] [arr data fn cons filter] crouch play"));
     dictionary_set(wd, "concat", make_fun_node(pf_concatArr));
+
     // dictionary_set(wd, "binrec", make_fun_node(pf_binrec));
     // // // const block = toPLOrNull(s?.pop());
     // // //         const item2 = s?.pop();

@@ -4,5 +4,6 @@
         "istream": "c",
         "pounce.h": "c",
         "ws2812.hpp": "c"
-    }
+    },
+    "cmake.configureOnOpen": false
 }

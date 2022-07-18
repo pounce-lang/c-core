@@ -13,7 +13,7 @@ extern "C" {
 #define IFUNC_T 'f'
 
 // MACRO to test for a string type node
-#define type_s(n) (n->type == STRING_T || n->type == '\'' || n->type == '"' || n->type == '`')
+#define type_s(n) (n->type == STRING_T || n->type == '\'' || n->type == '"' || n->type == '`' || n->type == 'r')
 
 
 typedef struct word_struct
@@ -31,7 +31,7 @@ typedef struct word_struct
 
 typedef struct pdq_node
 {
-	char type; // (b)oolean, (s)tring, (i)nt (long), (l)ist, (f)unction (d)ouble presision float
+	char type; // (b)oolean, (s)tring, (i)nt (long), (l)ist, (f)unction (d)ouble presision float (r)eplaced_string
 	struct word_struct word;
 	struct pdq_node *previous;
 

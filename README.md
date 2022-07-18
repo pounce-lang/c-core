@@ -15,7 +15,7 @@
 `./dist/repl -i tests/source.p`
 
 ### Pounce language tests
-./test-runner.sh
+`./test-runner.sh`
 
 ### internal ADT tests
 tests that exercise the stack and queue (internal workings) DataTypes
