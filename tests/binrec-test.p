@@ -1,0 +1,1 @@
+[6 3 8 4 5 7 2 9 1] [size 1 <=] [] [uncons [>] split] [concat] binrec [1 2 3 4 5 6 7 8 9] =

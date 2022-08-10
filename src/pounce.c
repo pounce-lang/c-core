@@ -1406,13 +1406,40 @@ dictionary *init_core_word_dictionary()
     dictionary_set(wd, "filter", parse_list_node("[size] dip [arr n ph] [arr [] [[uncons] dip [dup [ph play] dip] dip2 [rotate] dip rollup [swap cons] [drop] if-else] n times] crouch play reverse [drop] dip"));
     //                                             1    0     1        0 1    21 23      2     3    4       3    2      3      2            3         2 3    2        1        0                     1    0     
 
+    // // // 'binrec': {
+    // // //     //     { type: 'termTest extends (list<words>)' },
+    // // //     //     { type: 'terminal extends (list<words>)' },
+    // // //     //     { type: 'recurse extends (list<words>)' },
+    // // //     //     { type: 'final extends (list<words>)' }
+    // // //     // ], []],
+    // // //     compose: (s, pl) => {
+    // // //         // termtest && terminal && recurse && final binrec 
+    // // //         const final = toPLOrNull(s?.pop());
+    // // //         const recurse = toPLOrNull(s?.pop());
+    // // //         const terminal = toPLOrNull(s?.pop());
+    // // //         const termtest = toPLOrNull(s?.pop());
+    // // //         if (termtest && terminal && recurse && final) {
+    // // //             const nextRec = [termtest, terminal, recurse, final, 'binrec'];
+    // // //             pl = [...termtest, terminal, [...recurse, [...nextRec], 'dip', ...nextRec, ...final], 'if-else'].concat(pl);
+    // // //         }
+    // // //         else {
+    // // //             console.error("some stack value(s) not found");
+    // // //             // throw new Error("stack value(s) not found");
+    // // //         }
+    // // //         // console.log('*** s pl ***', s, pl);
+    // // //         return [s, pl];
+    // // //     }
+    // // // }
+    dictionary_set(wd, "binrec", parse_list_node("[tt t r f][[tt play t [r play [[tt t r f binrec]] dip tt t r f binrec f] if-else] play] crouch play"));
+    //                                             1        012          3       45               43                      2        1     0
+
     dictionary_set(wd, "rotate", parse_list_node("[a b c][c b a] crouch play"));
     dictionary_set(wd, "rollup", parse_list_node("[a b c][c a b] crouch play"));
     dictionary_set(wd, "rolldn", parse_list_node("[a b c][b c a] crouch play"));
 
     // [!] data fn cons filter concat
     //dictionary_set(wd, "filter", parse_list_node("[arr fn] [[] arr size 0 > [uncons [dup] dip swap fn play [[swap cons]dip][]if-else] [] if-else ] crouch play"));
-    dictionary_set(wd, "split", parse_list_node("[arr data fn] [arr data fn cons filter] crouch play"));
+    dictionary_set(wd, "split", parse_list_node("[data arr fn] [arr data fn cons filter arr data fn [!] concat cons filter] crouch play"));
     dictionary_set(wd, "concat", make_fun_node(pf_concatArr));
 
     // dictionary_set(wd, "binrec", make_fun_node(pf_binrec));
